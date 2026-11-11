@@ -1,0 +1,28 @@
+# Send only the files needed to build the application.
+# Documentation, migrations, fixtures, local tools and credentials stay on the host.
+**
+!package.json
+!package-lock.json
+!next.config.ts
+!next-env.d.ts
+!tsconfig.json
+!postcss.config.mjs
+!scripts/
+!scripts/prepare-pdfjs.mjs
+!scripts/check-docker-public-env.mjs
+!src/
+!src/**
+!public/
+!public/**
+
+# Generated during npm ci / prebuild inside the image.
+public/pdfjs/
+
+# Keep credentials excluded even when placed inside an allowed directory.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/node_modules

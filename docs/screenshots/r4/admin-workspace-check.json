@@ -1,0 +1,21 @@
+{
+  "sourceVersion": "0.8.1",
+  "versionsMatch": true,
+  "unitTestsPassed": 850,
+  "unitTestFiles": 36,
+  "browserTestsPassed": 43,
+  "browserTestsSkipped": 5,
+  "lintPassed": true,
+  "typecheckPassed": true,
+  "buildPassed": true,
+  "browserFilesChecked": 40,
+  "serverSecretMatches": 0,
+  "originalFilesPreserved": 41,
+  "historicalReceiptsUnchanged": 5,
+  "migration012Unchanged": true,
+  "documentsChecked": 32,
+  "brokenLinks": 0,
+  "newMigrations": 0,
+  "cloudAccountOrRoleChanges": 0,
+  "cloudAdminLoginTested": false
+}

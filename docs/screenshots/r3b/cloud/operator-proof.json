@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 4,
+  "runId": "c0ce4cd9-9a2f-4fbc-a59a-20d080319a25",
+  "status": "passed_with_persistent_fixture",
+  "fixtureSha256": "e3fdf4680cd01b4291822accdcc28f4461f5540bdcd35f82f655fd2fe2313d06",
+  "fixtureBytes": 1544,
+  "fixturePages": 2,
+  "accounts": {
+    "A": {
+      "id": "76d72217-98f8-43bf-ad0e-eb74a1976c79",
+      "disposition": "retained_for_history_or_reconciliation",
+      "observed": {
+        "legacyDocuments": 0,
+        "legacyVersions": 0,
+        "documents": 1,
+        "versions": 1,
+        "requests": 1,
+        "objects": 1,
+        "decisions": 0,
+        "receipts": 1,
+        "resultObjects": 1
+      }
+    },
+    "B": {
+      "id": "7f4a1733-846d-4af8-9596-b28cfc55a9e9",
+      "disposition": "retained_for_history_or_reconciliation",
+      "observed": {
+        "legacyDocuments": 0,
+        "legacyVersions": 0,
+        "documents": 0,
+        "versions": 0,
+        "requests": 1,
+        "objects": 0,
+        "decisions": 1,
+        "receipts": 1,
+        "resultObjects": 0
+      }
+    },
+    "C": {
+      "id": "b0c4fd18-d8c3-4011-9c1e-7e4b850fbb6b",
+      "disposition": "cleaned_up",
+      "observed": {
+        "legacyDocuments": 0,
+        "legacyVersions": 0,
+        "documents": 0,
+        "versions": 0,
+        "requests": 0,
+        "objects": 0,
+        "decisions": 0,
+        "receipts": 0,
+        "resultObjects": 0
+      },
+      "cleanupVerified": {
+        "authMissing": true,
+        "roles": 0,
+        "profiles": 0,
+        "codes": 0
+      }
+    }
+  },
+  "receipts": {
+    "approve": {
+      "documentId": "6a62bddc-4571-8f09-ae01-ebdbe2fcc39d",
+      "versionId": "87d80e9e-62d8-8131-9554-d0a5e380c42e",
+      "requestId": "e3e93f21-450f-836a-8445-955f1a4d16b7",
+      "decisionId": "63aca5ba-02fe-8546-bfaf-479f8a7f347d",
+      "status": "completed",
+      "receiptId": "0bZDU8st5EW_tH0qH1yeSVYtXL9WcEs0SPkjjikVlBk",
+      "placements": [
+        {
+          "page": 1,
+          "x": 0.205010810464172,
+          "y": 0.40000022967161347
+        },
+        {
+          "page": 2,
+          "x": 0.6550108600862502,
+          "y": 0.5500002238238463
+        }
+      ]
+    }
+  },
+  "checks": [
+    "three_verified_normal_user_logins_and_empty_new_model",
+    "one_two_page_private_version_invited_without_receipts",
+    "owner_outsider_guest_injection_origin_and_stale_version_decisions_denied",
+    "unchecked_consent_no_password_committed_approval_single_receipt_and_retry",
+    "both_original_pages_qr_match_positions_no_appended_evidence",
+    "private_receipt_desktop_mobile_light_dark_without_horizontal_overflow"
+  ],
+  "placementPlan": [
+    {
+      "x": 0.20501,
+      "y": 0.4,
+      "page": 1,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 0,
+      "userUnit": 1
+    },
+    {
+      "x": 0.65501,
+      "y": 0.55,
+      "page": 2,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 0,
+      "userUnit": 1
+    }
+  ],
+  "placementPlanSha256": "d3cc8783e9f4cc493417ef58d2075289a730ee4e4df3efd10a9e6846292f4396",
+  "sourceObjects": "one_verified_private_source_two_pages",
+  "result": {
+    "state": "ready",
+    "pageCount": 2,
+    "bytes": 6177,
+    "sha256": "628e3dee44fadacf3981d89520422edcba2d15e31f83a0486f7fa4117a8d2f98"
+  },
+  "reconciledEmpty": false
+}

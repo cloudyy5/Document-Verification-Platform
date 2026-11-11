@@ -1,0 +1,11 @@
+# R3b — posisi QR per halaman dan bukti web
+
+Keputusan pengguna, 10 November 2026 (Asia/Makassar): **penerima** mengatur posisi sebelum menyetujui; QR pada **semua halaman asli**, dengan posisi per halaman; **hapus halaman bukti tambahan** pada hasil baru. Pemindaian membuka halaman bukti privat di web. Ini menggantikan posisi/footer/halaman tambahan S-09 untuk persetujuan baru; hasil lama immutable tetap memakai format yang sudah disetujui.
+
+Penanda editor belum merupakan QR yang dapat dipindai. QR/receipt diterbitkan setelah transaksi persetujuan committed. Posisi, versi/hash sumber dan consent dikunci bersama keputusan; menggeser setelah approve tidak diperbolehkan. Sumber tetap utuh; hasil baru mempunyai jumlah halaman yang sama dengan sumber. Bukti persetujuan tampil pada `/receipts/:id`, membutuhkan login dan relasi owner/recipient. Tidak ada verifier publik atau ekspor PDF bukti baru.
+
+Editor menampilkan satu halaman PDF pada satu waktu dan mendukung mouse, sentuhan serta tombol panah. Penerima memilih area kosong; QR hasil boleh menutupi konten hanya sesuai penempatan yang ia konfirmasi. Server memeriksa ulang ukuran/rotasi/crop PDF, jumlah halaman, batas posisi dan anotasi yang dapat menutup QR. Seluruh halaman wajib memiliki posisi valid sebelum konfirmasi.
+
+Koordinat merupakan posisi relatif sudut kiri atas area halaman yang terlihat; ukuran QR tetap 90 point termasuk quiet zone. Ukuran/rotasi halaman berasal dari byte PDF yang hash-nya diverifikasi server. Client tidak menentukan actor, dimensi sumber, path Storage atau state. Manifest penempatan immutable terikat receipt/source version, dan ikut perbandingan idempotensi. Renderer mendukung format lama untuk riwayat serta format baru tanpa memperbesar kanvas/menambah halaman.
+
+Migration additive 011 dilaporkan berhasil dijalankan dan [preflight API](qr-placement-activation-check.md) lulus 47 pemeriksaan. Source/pengujian lokal tersedia; [penerimaan peserta cloud format baru](qr-placement-cloud-report.md) telah lulus. Jangan mengubah migration 001–010, fixture R1/R2/R3 yang sudah terminal, atau menganggap preflight sama dengan penerimaan alur peserta cloud. Fixture cloud R3 yang telah selesai tidak menjadi izin membuat data uji baru. R4 monitoring tetap tahap terpisah.

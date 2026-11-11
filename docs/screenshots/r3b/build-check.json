@@ -1,0 +1,10 @@
+{
+  "workerRoutes": [
+    ".next\\server\\app\\api\\v2\\signing-receipts\\[receiptId]\\render\\route.js.nft.json",
+    ".next\\server\\app\\api\\v2\\signing-requests\\[requestId]\\decisions\\route.js.nft.json"
+  ],
+  "browserFilesChecked": 39,
+  "serverSecretMatches": 0,
+  "historicalReceiptsUnchanged": 4,
+  "cloudRequests": 0
+}

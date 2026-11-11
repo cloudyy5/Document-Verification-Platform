@@ -1,0 +1,11 @@
+node_modules
+.next
+.npm-cache
+.postgres-test
+supabase/.temp
+package-lock.json
+playwright-report
+test-results
+Document_Verification_Platform_v1.0.2
+src/styles/design-tokens.css
+docs/original-files.sha256.json

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+  <body
+    style="
+      margin: 0;
+      padding: 32px 20px;
+      background: #f5f7fb;
+      color: #17283d;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <main
+      style="
+        max-width: 480px;
+        margin: auto;
+        padding: 32px;
+        background: #ffffff;
+        border: 1px solid #dce4ee;
+        border-radius: 12px;
+      "
+    >
+      <p style="font-size: 12px; color: #5b6472">
+        Document Verification Platform
+      </p>
+      <h1 style="font-size: 24px">Konfirmasi alamat email Anda</h1>
+      <p style="line-height: 1.6">
+        Konfirmasi email untuk melanjutkan penggunaan akun Anda. Setelah
+        konfirmasi, silakan masuk dengan email dan kata sandi.
+      </p>
+      <p style="margin: 28px 0">
+        <a
+          href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup"
+          style="
+            display: inline-block;
+            padding: 13px 20px;
+            border-radius: 8px;
+            background: #2f5fcb;
+            color: white;
+            text-decoration: none;
+          "
+          >Konfirmasi email</a
+        >
+      </p>
+      <p style="font-size: 12px; line-height: 1.6; color: #5b6472">
+        Jika Anda tidak membuat akun ini, abaikan pesan ini. Jangan bagikan
+        tautan konfirmasi.
+      </p>
+    </main>
+  </body>
+</html>

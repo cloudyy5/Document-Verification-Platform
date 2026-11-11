@@ -1,0 +1,32 @@
+services:
+  web:
+    image: document-verification-platform:node24
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Isi NEXT_PUBLIC_SUPABASE_URL di file env}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?Isi NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY di file env}
+    environment:
+      APP_URL: ${APP_URL:?Isi APP_URL dengan origin aplikasi yang dibuka pengguna}
+      AUTH_FLOW_SECRET: ${AUTH_FLOW_SECRET:?Isi AUTH_FLOW_SECRET di file env}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:?Isi SUPABASE_SECRET_KEY di file env}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Isi NEXT_PUBLIC_SUPABASE_URL di file env}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?Isi NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY di file env}
+      DOCUMENT_ENVIRONMENT: ${DOCUMENT_ENVIRONMENT:-development}
+      DOCUMENT_MAX_FILE_BYTES: ${DOCUMENT_MAX_FILE_BYTES:-10485760}
+    ports:
+      - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${DOCKER_PORT:-3000}:3000"
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

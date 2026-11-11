@@ -1,0 +1,29 @@
+{
+  "reports": [
+    {
+      "scenario": "rotated-four-pages",
+      "sourcePages": 4,
+      "resultPages": 4,
+      "decodedPages": [1, 2, 3, 4],
+      "qrCentersMatchSelectedPositions": true,
+      "canvasUnchanged": true
+    },
+    {
+      "scenario": "single-source-page",
+      "sourcePages": 1,
+      "resultPages": 1,
+      "decodedPages": [1],
+      "qrCentersMatchSelectedPositions": true,
+      "canvasUnchanged": true
+    },
+    {
+      "scenario": "clipped-crop-page",
+      "sourcePages": 1,
+      "resultPages": 1,
+      "decodedPages": [1],
+      "qrCentersMatchSelectedPositions": true,
+      "canvasUnchanged": true
+    }
+  ],
+  "cloudRequests": 0
+}

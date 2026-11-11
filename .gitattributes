@@ -1,0 +1,5 @@
+* text=auto eol=lf
+Document_Verification_Platform_v1.0.2/** -text
+src/styles/design-tokens.css -text
+supabase/migrations/*.sql -text
+*.png binary

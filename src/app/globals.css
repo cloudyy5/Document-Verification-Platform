@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "../styles/design-tokens.css";
+
+@source "../";
+
+/* Graphite navigation extends the supplied tokens; originals are unchanged. */
+:root,
+[data-theme="light"] {
+  --color-sidebar: #292e35;
+  --color-sidebar-text: #f5f6f8;
+  --color-sidebar-muted: #b8c0cb;
+  --color-sidebar-hover: #353c45;
+  --color-sidebar-active: #454d58;
+  --color-sidebar-border: #454c56;
+  --color-overlay: rgb(13 23 37 / 55%);
+}
+
+[data-theme="dark"] {
+  --color-sidebar: #181d24;
+  --color-sidebar-text: #f0f5fb;
+  --color-sidebar-muted: #a9b7c8;
+  --color-sidebar-hover: #252d38;
+  --color-sidebar-active: #303b49;
+  --color-sidebar-border: #303b49;
+  --color-overlay: rgb(0 0 0 / 65%);
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-muted: var(--color-surface-muted);
+  --color-raised: var(--color-surface-raised);
+  --color-foreground: var(--color-text-primary);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-subtle: var(--color-text-muted);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-soft: var(--color-primary-soft);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-focus: var(--color-focus);
+  --color-success: var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-warning: var(--color-warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-info: var(--color-info);
+  --color-info-bg: var(--color-info-bg);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-neutral: var(--color-neutral);
+  --color-neutral-bg: var(--color-neutral-bg);
+  --color-success-soft: var(--color-success-bg);
+  --color-warning-soft: var(--color-warning-bg);
+  --color-info-soft: var(--color-info-bg);
+  --color-danger-soft: var(--color-danger-bg);
+  --color-neutral-soft: var(--color-neutral-bg);
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    min-width: 320px;
+  }
+  body {
+    font-family: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  }
+  button:not(:disabled),
+  select,
+  summary {
+    cursor: pointer;
+  }
+  ::selection {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+  }
+  code,
+  pre {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply overflow-hidden rounded-xl border border-border bg-surface;
+  }
+  .section-heading {
+    @apply text-base font-semibold tracking-tight text-foreground;
+  }
+  .eyebrow {
+    @apply text-xs font-medium tracking-widest text-subtle uppercase;
+  }
+  .workspace-grid {
+    @apply grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_300px];
+  }
+}

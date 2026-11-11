@@ -1,0 +1,11 @@
+{
+  "runId": "c0ce4cd9-9a2f-4fbc-a59a-20d080319a25",
+  "status": "passed_with_persistent_fixture",
+  "priorReceiptsUnchanged": 4,
+  "repeatGuardBlocked": true,
+  "repeatGuardNetworkCalls": 0,
+  "receiptUnchangedByGuard": true,
+  "primarySha256": "f63c975f260cdeb85ebe3c074c871c880977b3c8b2515ba432acc0259e2fe9e9",
+  "perRunSha256": "f63c975f260cdeb85ebe3c074c871c880977b3c8b2515ba432acc0259e2fe9e9",
+  "sensitiveProofFields": 0
+}

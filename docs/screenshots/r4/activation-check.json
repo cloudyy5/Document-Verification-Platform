@@ -1,0 +1,31 @@
+{
+  "sourceVersion": "0.8.0",
+  "date": "2026-11-11",
+  "timezone": "Asia/Makassar",
+  "operatorReportedMigration012Applied": true,
+  "localMigrationSha256": "1677236a52370da8972b2de412e5fcdbaf18c9c10d7f0246d9a8de4b2df251a4",
+  "command": "npm run supabase:check -- --workspace --signing --signing-r3 --qr-placement --operations",
+  "exitCode": 0,
+  "checksPassed": 49,
+  "checksFailed": 0,
+  "operationsProbes": {
+    "serviceNullActor": {
+      "httpStatus": 403,
+      "code": "42501",
+      "message": "OPERATIONS_ACTOR_REQUIRED"
+    },
+    "anonymous": {
+      "httpStatus": 401,
+      "code": "42501",
+      "message": "permission denied for function get_operations_snapshot"
+    }
+  },
+  "globalStatisticsRead": false,
+  "adminCloudSessionTested": false,
+  "cloudAccountsCreated": 0,
+  "cloudRoleChanges": 0,
+  "cloudDocumentsCreated": 0,
+  "cloudApplicationAuditWrites": 0,
+  "cloudStorageObjectsCreated": 0,
+  "priorFixtureRunnersExecuted": 0
+}
