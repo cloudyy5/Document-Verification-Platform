@@ -1,0 +1,20 @@
+services:
+  web:
+    image: document-verification-platform:dev
+    build:
+      target: dev
+    environment:
+      DOCUMENT_ENVIRONMENT: development
+      # Berguna jika file watching di dalam Docker terasa lambat:
+      WATCHPACK_POLLING: "true"
+    volumes:
+      # Mount seluruh source code untuk hot-reload
+      - .:/app
+      # Lindungi node_modules dan hasil build .next agar tidak bentrok dengan host
+      - /app/node_modules
+      - /app/.next
+      # Lindungi aset PDF.js yang di-generate saat postinstall di dalam container
+      - /app/public/pdfjs
+    extra_hosts:
+      # Memungkinkan container mengakses Supabase lokal di host via http://host.docker.internal:54321
+      - "host.docker.internal:host-gateway"

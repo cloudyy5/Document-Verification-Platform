@@ -205,3 +205,16 @@ docs/                       Keputusan, setup, preservasi, laporan tiap phase
 ```
 
 Seluruh paket dokumentasi, SQL, dan tujuh gambar asli tetap di `Document_Verification_Platform_v1.0.2/document-verification-platform-v1.0.2/`. SHA-256 **41 file asli**, salinan SQL 001/002, dan design tokens diperiksa unit test. Jangan format ulang sumber yang dipertahankan. Keputusan terbaru tercatat di [decision-notes.md](docs/decision-notes.md).
+
+
+## Cara Run
+
+Lingkunagn Development
+```bash
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+Lingkungan Production
+```bash
+docker compose --env-file .env.production -f docker-compose.yml up -d --build
+```
