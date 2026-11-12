@@ -1,5 +1,7 @@
 # Document Verification Platform
 
+**Source 0.8.3 — uji prototipe pada domain HTTPS yang disetujui.** Pengguna menyetujui `https://dvp.ilkomith.cloud` untuk PDF sintetis. Fitur dokumen/signing dapat diaktifkan dengan `DOCUMENT_ENVIRONMENT=development` dan `DOCUMENT_DEVELOPMENT_ORIGIN` yang sama persis dengan origin `APP_URL`. Nilai baru hanya dibaca server saat runtime; default tetap lokal. [Panduan aktivasi dan pengujian](docs/prototype-domain-deployment.md) memuat langkah redeploy. Ini tidak mengaktifkan kebijakan dokumen produksi, mengubah schema, atau memperluas akses PDF.
+
 **Source 0.8.2 — packaging Docker dengan Node.js 24 dan Supabase cloud.** [Dockerfile](Dockerfile), [.dockerignore](.dockerignore) dan [docker-compose.yml](docker-compose.yml) tersedia. Build standalone memakai dua variable publik, sedangkan secret hanya diberikan pada runtime. [Panduan Docker](docs/docker-deployment.md) menjelaskan perintah build/run, Auth URL, port, healthcheck dan batas pengujian. Gate fitur dokumen development/localhost tetap berlaku; packaging ini tidak membuka fitur dokumen produksi atau mengubah schema Supabase.
 
 **Source 0.8.1 — login sesuai role dan workspace admin eksklusif.** Login biasa pada `/login` menuju `/admin/overview` untuk akun `platform_admin` dan `/dashboard` untuk user. Admin tidak lagi memperoleh perpindahan ke User Workspace; URL serta API dokumen pengguna juga dibatasi. Profil/tema akun sendiri tetap tersedia di shell admin. [Laporan perubahan](docs/signing-revision/admin-workspace-report.md) mencatat S-15, pengujian dan batas bukti. Tidak memerlukan migration atau perubahan `.env.local` baru.
@@ -38,7 +40,7 @@ npm run build
 npm run start
 ```
 
-Konfigurasi pengajuan saat ini ditujukan untuk development loopback dengan Supabase Free. Build lokal tidak mengaktifkan pengajuan pada origin publik.
+Konfigurasi pengajuan ditujukan untuk development dengan Supabase Free. Default hanya loopback; pengujian PDF sintetis pada satu origin HTTPS yang disetujui memerlukan opt-in runtime sesuai [panduan domain prototipe](docs/prototype-domain-deployment.md). Build saja tidak mengaktifkan pengajuan pada domain.
 
 ## Halaman dan API
 
@@ -90,17 +92,18 @@ Pilihan tema Terang, Gelap, dan Sistem disimpan pada browser melalui `dvp-theme`
 
 ## Konfigurasi
 
-| Variabel                               | Pemakaian                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `APP_URL`                              | Origin canonical yang persis sama dengan browser, contoh `http://127.0.0.1:3000`                  |
-| `AUTH_FLOW_SECRET`                     | HMAC server untuk limiter, recovery dan binding audit keputusan; dibuat setup                     |
-| `NEXT_PUBLIC_SUPABASE_URL`             | URL project development                                                                           |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key atau legacy anon                                                                  |
-| `SUPABASE_SECRET_KEY`                  | Secret server-only atau legacy service_role                                                       |
-| `DOCUMENT_ENVIRONMENT`                 | `development`; pengajuan juga memerlukan origin loopback                                          |
-| `DOCUMENT_MAX_FILE_BYTES`              | Default `10485760` (10 MiB), integer positif yang dapat diturunkan sampai batas maksimum tersebut |
+| Variabel                               | Pemakaian                                                                                             |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `APP_URL`                              | Origin canonical yang persis sama dengan browser, contoh `http://127.0.0.1:3000`                      |
+| `AUTH_FLOW_SECRET`                     | HMAC server untuk limiter, recovery dan binding audit keputusan; dibuat setup                         |
+| `NEXT_PUBLIC_SUPABASE_URL`             | URL project development                                                                               |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key atau legacy anon                                                                      |
+| `SUPABASE_SECRET_KEY`                  | Secret server-only atau legacy service_role                                                           |
+| `DOCUMENT_ENVIRONMENT`                 | `development`; kebijakan dokumen produksi belum diaktifkan                                            |
+| `DOCUMENT_DEVELOPMENT_ORIGIN`          | Opsional; satu origin HTTPS canonical yang disetujui untuk uji sintetis, sama persis dengan `APP_URL` |
+| `DOCUMENT_MAX_FILE_BYTES`              | Default `10485760` (10 MiB), integer positif yang dapat diturunkan sampai batas maksimum tersebut     |
 
-Consent legacy adalah `development-2026-11-04`; R2 memakai `internal-upload-development-2026-11-05` dan `internal-sharing-development-2026-11-05` yang telah [disetujui untuk development](docs/signing-revision/development-consent.md). Tanggal pada ID merupakan versi teks. Checkbox selalu kosong pada awal form. PDF terenkripsi/password-protected ditolak; file harus lolos pemeriksaan tipe, signature, struktur, dan batas sumber daya worker. R3 juga memakai consent tindakan `internal-action-development-2026-11-05` dan tidak memerlukan environment baru; guard development loopback dan batas maksimum 10 MiB tetap berlaku.
+Consent legacy adalah `development-2026-11-04`; R2 memakai `internal-upload-development-2026-11-05` dan `internal-sharing-development-2026-11-05` yang telah [disetujui untuk development](docs/signing-revision/development-consent.md). Tanggal pada ID merupakan versi teks. Checkbox selalu kosong pada awal form. PDF terenkripsi/password-protected ditolak; file harus lolos pemeriksaan tipe, signature, struktur, dan batas sumber daya worker. R3 juga memakai consent tindakan `internal-action-development-2026-11-05`. Guard tetap mewajibkan development, origin lokal atau HTTPS yang diizinkan eksplisit, serta batas maksimum 10 MiB.
 
 Registrasi memeriksa email confirmation provider. R-04 mewajibkan email terverifikasi sebelum pengajuan; guard server dan trigger database menerapkannya. Role berasal dari tabel `user_roles`. Privileged client berada pada server untuk operasi terbatas yang sudah diotorisasi, termasuk RPC keamanan/limiter dan akses private Storage; secret tidak dikirim ke browser.
 

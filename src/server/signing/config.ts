@@ -5,7 +5,7 @@ import {
 } from "@/lib/signing/policy";
 import { getSubmissionConfiguration } from "@/server/documents/config";
 
-/** Keep the existing loopback/development safety gate with separate consents. */
+/** Share the local/explicit remote development gate with separate consents. */
 export function getSigningConfiguration() {
   const { maxBytes, environment } = getSubmissionConfiguration();
   return {

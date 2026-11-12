@@ -24,9 +24,12 @@ npm run auth:setup
 | `APP_URL`                              | Origin canonical, misalnya `http://127.0.0.1:3000`                  |
 | `AUTH_FLOW_SECRET`                     | Secret server minimal 32 karakter; dipakai untuk HMAC counter/proof |
 | `DOCUMENT_ENVIRONMENT`                 | `development`; nilai lain membuat upload tidak tersedia             |
+| `DOCUMENT_DEVELOPMENT_ORIGIN`          | Opsional; satu origin HTTPS yang disetujui untuk uji PDF sintetis   |
 | `DOCUMENT_MAX_FILE_BYTES`              | Integer positif maksimum `10485760` (10 MiB); boleh diturunkan      |
 
 HTTP hanya diterima untuk loopback pada konfigurasi origin. `localhost` dan `127.0.0.1` adalah origin berbeda. Buka origin yang sama dengan `APP_URL`; mutation memeriksa Origin. Restart dev server setelah env berubah. Nilai `NEXT_PUBLIC_*` memerlukan build ulang untuk build production lokal.
+
+**Pembaruan 12 November 2026/source 0.8.3:** default pengajuan tetap lokal. Pengguna menyetujui uji PDF sintetis pada `https://dvp.ilkomith.cloud`; domain development tersebut harus diizinkan melalui `DOCUMENT_DEVELOPMENT_ORIGIN` yang sama persis dengan origin `APP_URL`. Lihat [panduan domain prototipe](prototype-domain-deployment.md). Runner cloud historis di bagian akhir panduan ini tetap memiliki batas loopback tersendiri dan tidak dijalankan ulang untuk aktivasi domain.
 
 ```powershell
 npm run dev

@@ -24,6 +24,7 @@ Isi `.env.local` milik host mengikuti [.env.example](../.env.example). Nilai yan
 | `AUTH_FLOW_SECRET`                     | Runtime           | Nilai acak server-only, minimal 32 karakter; dipertahankan antar-restart                                         |
 | `SUPABASE_SECRET_KEY`                  | Runtime           | Secret key backend dari project yang sama                                                                        |
 | `DOCUMENT_ENVIRONMENT`                 | Runtime           | Default `development`, mengikuti gate produk yang sudah ada                                                      |
+| `DOCUMENT_DEVELOPMENT_ORIGIN`          | Runtime           | Opsional; satu origin HTTPS yang disetujui untuk PDF sintetis, sama persis dengan origin `APP_URL`               |
 | `DOCUMENT_MAX_FILE_BYTES`              | Runtime           | Default `10485760` (10 MiB), tetap dibatasi validator aplikasi                                                   |
 
 Isi credential langsung di file host. Gunakan pengganti untuk secret yang sebelumnya terungkap. `.env.local` tidak disalin atau di-mount ke image; Compose meneruskan field yang disebutkan saja. Jangan menggunakan secret/service-role key untuk variable `NEXT_PUBLIC_*`, ARG Docker, `next.config.env` atau source. Jalankan `config --quiet`, karena `config` biasa dan `docker inspect` dapat menampilkan environment container.
@@ -56,9 +57,9 @@ Pada Supabase Auth, sesuaikan Site URL serta daftar redirect dengan origin aplik
 
 ## Batas fitur dokumen pada domain publik
 
-**Packaging Docker ini tidak mengaktifkan kebijakan produksi.** `src/server/documents/config.ts` saat ini mensyaratkan origin localhost/loopback dan `DOCUMENT_ENVIRONMENT=development` untuk fitur dokumen/signing. Mengisi `APP_URL` dengan domain publik membuat fitur yang bergantung pada konfigurasi tersebut tetap merespons unavailable sesuai gate, walaupun container, login dan monitoring dapat berjalan. `NODE_ENV=production` di image merupakan mode runtime Next.js dan tidak menggantikan kebijakan dokumen itu.
+**Packaging Docker ini tidak mengaktifkan kebijakan produksi.** Default `src/server/documents/config.ts` tetap memerlukan origin localhost/loopback dan `DOCUMENT_ENVIRONMENT=development`. Pada source 0.8.3, satu origin HTTPS dapat diizinkan secara eksplisit untuk PDF sintetis melalui `DOCUMENT_DEVELOPMENT_ORIGIN`. Pengguna menyetujui `https://dvp.ilkomith.cloud` untuk uji prototipe; [panduan aktivasi domain](prototype-domain-deployment.md) mencatat konfigurasi dan langkah redeploy. Mengubah `APP_URL` saja tetap tidak mengaktifkan fitur dokumen pada domain. `NODE_ENV=production` di image merupakan mode runtime Next.js dan tidak menggantikan kebijakan dokumen development.
 
-Pekerjaan ini mempertahankan gate, consent development, scanner/retensi yang belum ditetapkan, akses privat serta riwayat immutable. Dockerfile bukan klaim bahwa seluruh fitur sudah siap digunakan untuk dokumen produksi. Pengaktifan dokumen di domain publik memerlukan keputusan kebijakan yang sesuai sebelum kode gate diubah.
+Pekerjaan ini mempertahankan consent development, scanner/retensi yang belum ditetapkan, akses privat serta riwayat immutable. Persetujuan pengujian pada domain tidak memperluas consent ke dokumen nyata atau mengaktifkan kebijakan produksi. Dockerfile bukan klaim bahwa seluruh fitur sudah siap digunakan untuk dokumen produksi.
 
 ## Mengubah konfigurasi dan menghentikan
 
@@ -68,7 +69,7 @@ Perubahan URL Supabase atau publishable key memerlukan build ulang karena nilai 
 docker compose --env-file .env.local up -d --build
 ```
 
-Perubahan secret server atau `APP_URL` memerlukan container baru dengan environment baru:
+Setelah image source 0.8.3 sudah digunakan, perubahan secret server, `APP_URL` atau `DOCUMENT_DEVELOPMENT_ORIGIN` memerlukan container baru dengan environment baru:
 
 ```powershell
 docker compose --env-file .env.local up -d --force-recreate
