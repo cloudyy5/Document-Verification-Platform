@@ -74,6 +74,8 @@ Pintu keluar: migration additive 011 dilaporkan terpasang dan preflight API lulu
 
 ## R4 — Admin monitoring dan operasional
 
+**16 November 2026/source 0.9.0 — pelengkap notifikasi akun:** [laporan notifikasi in-app](../in-app-notifications-report.md) menghubungkan lonceng header dengan row notifikasi yang sudah dibuat transaksi R2/R3. Daftar/count/read menggunakan cookie client, owner filter dan RLS yang sudah ada. Ini fitur akun sendiri, tanpa statistik global atau akses PDF baru bagi admin. Tidak memerlukan migration dan tidak menutup R5/S-12 atau memperluas kanal S-10 ke email/SMS.
+
 **Penyempurnaan S-15/source 0.8.1:** [workspace admin eksklusif dan login sesuai role](admin-workspace-report.md) menambahkan pembatasan navigasi, halaman/API pengguna dan tujuan login admin, tanpa migration baru. Profil/preferensi akun sendiri tetap di shell admin. Ini bagian R4; R5 belum dimulai.
 
 **Checkpoint 11 November 2026:** ketiga keputusan S-11 sudah disetujui. Source v0.8.0 menyediakan halaman/API monitoring, RPC baca sempit dan migration 012, dengan 805 unit, 365 SQL native serta enam tes browser komponen lulus; build dan browser production juga lulus. [Laporan R4](r4-report.md) mencatat cakupan dan aktivasi. **012 dilaporkan berhasil dipasang pada cloud dan [preflight API](r4-activation-check.md) lulus 49 pemeriksaan; penerimaan sesi admin cloud belum dibuktikan.** [Setup akun dan uji baca-saja](r4-cloud-acceptance-plan.md) tersedia untuk operator. Laporan [persiapan](r4-preparation-report.md) sebelumnya dipertahankan sebagai checkpoint historis; R5 belum dimulai.

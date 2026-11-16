@@ -14,6 +14,7 @@ test("API workspace privat menolak guest sebelum membaca atau mengubah data", as
     "/api/v1/dashboard",
     "/api/v1/categories",
     "/api/v1/documents",
+    "/api/v1/notifications",
     `/api/v1/documents/${documentId}`,
     `/api/v1/documents/${documentId}/file`,
   ]) {
@@ -48,6 +49,16 @@ test("API workspace privat menolak guest sebelum membaca atau mengubah data", as
   });
   expect(profile.status()).toBe(401);
   expect(profile.headers()["cache-control"]).toContain("no-store");
+  const notification = await request.patch(
+    `/api/v1/notifications/${documentId}/read`,
+    {
+      headers: { Origin: baseURL! },
+      data: {},
+      maxRedirects: 0,
+    },
+  );
+  expect(notification.status()).toBe(401);
+  expect(notification.headers()["cache-control"]).toContain("no-store");
 });
 
 test.describe("workspace synthetic-account smoke (explicit opt-in)", () => {

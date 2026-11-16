@@ -1,5 +1,7 @@
 # Document Verification Platform
 
+**Source 0.9.0 — notifikasi akun di dalam aplikasi.** Lonceng header kini membaca notifikasi tersimpan dari Supabase, menampilkan jumlah belum dibaca, membuka permintaan terkait, serta menyimpan status dibaca. Panel mendukung mobile, tema terang/gelap, pagination, dan error tanpa mengganti hasil gagal menjadi nol. [Laporan implementasi](docs/in-app-notifications-report.md) menjelaskan cakupan peristiwa, polling dan pemeriksaan. Tidak ada migration, environment baru, email atau izin membaca dokumen tambahan.
+
 **Source 0.8.4 — perbaikan konfigurasi prototipe setelah merge Docker.** Penerusan `DOCUMENT_DEVELOPMENT_ORIGIN` pada service `web` dipulihkan. Gunakan `DOCUMENT_ENVIRONMENT=development` secara eksplisit untuk uji sintetis; fallback Compose `production` dari branch Docker tetap dipertahankan dan belum mengaktifkan kebijakan dokumen produksi. `npm run test:docker:config` memeriksa penerusan environment pada runner dan override dev dengan data sintetis, tanpa Docker Engine atau koneksi Supabase. [Panduan aktivasi](docs/prototype-domain-deployment.md) mencatat penyebab, redeploy dan pemeriksaan di dalam container.
 
 **Source 0.8.3 — uji prototipe pada domain HTTPS yang disetujui.** Pengguna menyetujui `https://dvp.ilkomith.cloud` untuk PDF sintetis. Fitur dokumen/signing dapat diaktifkan dengan `DOCUMENT_ENVIRONMENT=development` dan `DOCUMENT_DEVELOPMENT_ORIGIN` yang sama persis dengan origin `APP_URL`. Nilai baru hanya dibaca server saat runtime; default tetap lokal. [Panduan aktivasi dan pengujian](docs/prototype-domain-deployment.md) memuat langkah redeploy. Ini tidak mengaktifkan kebijakan dokumen produksi, mengubah schema, atau memperluas akses PDF.
@@ -79,6 +81,8 @@ Konfigurasi pengajuan ditujukan untuk development dengan Supabase Free. Default 
 | `POST /api/v1/documents/[documentId]/resubmissions`                 | Pengajuan versi baru melalui multipart                                                                   |
 | `GET /api/v1/documents/[documentId]/file?submissionId=UUID`         | Stream PDF setelah otorisasi pemilik; parameter versi opsional                                           |
 | `PATCH /api/v1/profile`                                             | JSON nama/telepon sendiri; role, owner ID, dan email tidak dapat diubah                                  |
+| `GET /api/v1/notifications`                                         | Notifikasi milik akun sendiri, jumlah belum dibaca dan pagination                                        |
+| `PATCH /api/v1/notifications/[notificationId]/read`                 | Menandai satu notifikasi milik sendiri dibaca; body JSON `{}`                                            |
 
 R4 menyediakan `/admin/overview`, `/admin/operations`, dan `GET /api/v2/operations/metrics`, khusus `platform_admin` terverifikasi. Reviewer tanpa role tersebut diarahkan ke arsip. Snapshot memisahkan akun, aktivitas dokumen 30 hari, dokumen/versi, completed, pending yang belum kedaluwarsa dan hasil perlu perhatian; tidak memuat nama/email pengguna lain, judul/isi PDF atau path Storage. Belum terhubung/SQL error tampil unavailable, bukan nol. [Aktivasi 012 dan setup admin awal](docs/signing-revision/r4-report.md) menjelaskan langkah operator yang diperlukan.
 

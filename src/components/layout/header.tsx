@@ -1,11 +1,11 @@
 "use client";
 
-import { Bell, LogOut, Menu, UserRound } from "lucide-react";
+import { LogOut, Menu, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
-import { useNotification } from "@/components/ui/notification";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 import type { Workspace, WorkspaceUser } from "@/components/layout/sidebar";
 import type { Ref } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
@@ -21,7 +21,6 @@ export function AppHeader({
   navigationTriggerRef?: Ref<HTMLButtonElement>;
   user?: WorkspaceUser;
 }) {
-  const { notify } = useNotification();
   return (
     <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-2 border-b border-border bg-surface px-4 md:min-h-16 md:px-6 lg:px-8">
       <div className="flex min-w-0 items-center gap-2">
@@ -52,24 +51,7 @@ export function AppHeader({
       </div>
       <div className="flex shrink-0 items-center gap-1 sm:gap-3">
         <ThemeSwitcher />
-        {user && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden sm:flex"
-            aria-label="Buka notifikasi"
-            onClick={() =>
-              notify({
-                title: "Notifikasi masih belum tersedia",
-                description:
-                  "Notifikasi dokumen akan tersedia setelah alur pengajuan dan review diaktifkan.",
-                tone: "info",
-              })
-            }
-          >
-            <Bell aria-hidden="true" />
-          </Button>
-        )}
+        {user && <NotificationBell key={user.email ?? user.name} />}
         {user ? (
           <div className="ml-1 flex min-w-0 items-center gap-1 border-l border-border pl-2 sm:ml-2 sm:gap-3 sm:pl-4">
             <span className="hidden size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-subtle sm:flex">
