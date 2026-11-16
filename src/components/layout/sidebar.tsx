@@ -222,15 +222,6 @@ export function AppSidebar({
           mobile={mobile}
           onNavigate={onNavigate}
         />
-        {!canMonitor && (
-          <NavigationLink
-            href="/foundation"
-            label="Komponen UI"
-            icon={LayoutGrid}
-            mobile={mobile}
-            onNavigate={onNavigate}
-          />
-        )}
       </nav>
 
       <div
