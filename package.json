@@ -1,6 +1,6 @@
 {
   "name": "document-verification-platform",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "private": true,
   "type": "module",
   "description": "Document Verification Platform — private documents and internal consent invitations",
@@ -17,6 +17,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:docker:config": "node scripts/test-compose-config.mjs",
     "test:watch": "vitest",
     "test:pdf:signing": "node scripts/test-signing-pdf-local.mjs",
     "test:pdf:movable": "node scripts/test-movable-qr-pdf.mjs",

@@ -22,6 +22,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test
+      - name: Check Compose prototype runtime configuration without containers
+        run: npm run test:docker:config
       - name: Install PostgreSQL 17 native binaries
         run: |
           sudo apt-get update

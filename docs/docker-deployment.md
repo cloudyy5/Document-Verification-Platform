@@ -16,18 +16,20 @@ Gunakan Docker Engine dengan Linux containers dan Compose v2 atau lebih baru. Pa
 
 Isi `.env.local` milik host mengikuti [.env.example](../.env.example). Nilai yang diperlukan:
 
-| Variable                               | Waktu penggunaan  | Keterangan                                                                                                       |
-| -------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Build dan runtime | URL project Supabase cloud yang sama                                                                             |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Build dan runtime | Publishable key; legacy anon diterima oleh validator. Field ini akan berada pada bundle browser                  |
-| `APP_URL`                              | Runtime           | Origin yang benar-benar dibuka pengguna. Lokal `http://127.0.0.1:3000`; domain menggunakan `https://domain-anda` |
-| `AUTH_FLOW_SECRET`                     | Runtime           | Nilai acak server-only, minimal 32 karakter; dipertahankan antar-restart                                         |
-| `SUPABASE_SECRET_KEY`                  | Runtime           | Secret key backend dari project yang sama                                                                        |
-| `DOCUMENT_ENVIRONMENT`                 | Runtime           | Default `development`, mengikuti gate produk yang sudah ada                                                      |
-| `DOCUMENT_DEVELOPMENT_ORIGIN`          | Runtime           | Opsional; satu origin HTTPS yang disetujui untuk PDF sintetis, sama persis dengan origin `APP_URL`               |
-| `DOCUMENT_MAX_FILE_BYTES`              | Runtime           | Default `10485760` (10 MiB), tetap dibatasi validator aplikasi                                                   |
+| Variable                               | Waktu penggunaan  | Keterangan                                                                                                           |
+| -------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Build dan runtime | URL project Supabase cloud yang sama                                                                                 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Build dan runtime | Publishable key; legacy anon diterima oleh validator. Field ini akan berada pada bundle browser                      |
+| `APP_URL`                              | Runtime           | Origin yang benar-benar dibuka pengguna. Lokal `http://127.0.0.1:3000`; domain menggunakan `https://domain-anda`     |
+| `AUTH_FLOW_SECRET`                     | Runtime           | Nilai acak server-only, minimal 32 karakter; dipertahankan antar-restart                                             |
+| `SUPABASE_SECRET_KEY`                  | Runtime           | Secret key backend dari project yang sama                                                                            |
+| `DOCUMENT_ENVIRONMENT`                 | Runtime           | Isi `development` untuk prototipe; fallback Compose setelah merge adalah `production` sehingga fitur dokumen ditolak |
+| `DOCUMENT_DEVELOPMENT_ORIGIN`          | Runtime           | Opsional; satu origin HTTPS yang disetujui untuk PDF sintetis, sama persis dengan origin `APP_URL`                   |
+| `DOCUMENT_MAX_FILE_BYTES`              | Runtime           | Default `10485760` (10 MiB), tetap dibatasi validator aplikasi                                                       |
 
 Isi credential langsung di file host. Gunakan pengganti untuk secret yang sebelumnya terungkap. `.env.local` tidak disalin atau di-mount ke image; Compose meneruskan field yang disebutkan saja. Jangan menggunakan secret/service-role key untuk variable `NEXT_PUBLIC_*`, ARG Docker, `next.config.env` atau source. Jalankan `config --quiet`, karena `config` biasa dan `docker inspect` dapat menampilkan environment container.
+
+Jika mengikuti perintah runner pada README yang memakai `--env-file .env.production`, isi konfigurasi pada file server tersebut dan gunakan nama file yang sama pada semua perintah di panduan ini. File `.env.local` yang diubah tidak menggantikan `.env.production` secara otomatis pada interpolasi Compose. Untuk prototipe, `DOCUMENT_ENVIRONMENT` tetap `development` meskipun nama file adalah `.env.production` dan runtime Next.js memakai `NODE_ENV=production`.
 
 Untuk project Supabase development yang sudah digunakan, migration 001–012 telah dilaporkan terpasang dan preflight 49 pemeriksaan lulus pada tahap sebelumnya. Docker tidak membuktikan schema/koneksi tersebut kembali. Ikuti [setup Auth](authentication-setup.md) dan laporan tahap terkait untuk project baru; jangan mengulang migration/fixture pada project saat ini.
 
@@ -57,6 +59,8 @@ Pada Supabase Auth, sesuaikan Site URL serta daftar redirect dengan origin aplik
 
 ## Batas fitur dokumen pada domain publik
 
+**Pembaruan 16 November 2026/source 0.8.4:** hasil merge branch Docker menghilangkan penerusan `DOCUMENT_DEVELOPMENT_ORIGIN` dan mengubah fallback `DOCUMENT_ENVIRONMENT` menjadi `production`. Source 0.8.4 memulihkan penerusan origin; fallback tersebut tetap dipertahankan. Untuk prototipe, `.env.local` server wajib mengisi `DOCUMENT_ENVIRONMENT=development` serta origin HTTPS yang sama persis dengan `APP_URL`. Memasukkan nilai pada file env Compose saja tidak memasukkannya ke container jika tidak dirujuk oleh mapping `environment` atau `env_file`. [Panduan perbaikan](prototype-domain-deployment.md) menyediakan pengecekan hanya tiga nilai non-secret di container.
+
 **Packaging Docker ini tidak mengaktifkan kebijakan produksi.** Default `src/server/documents/config.ts` tetap memerlukan origin localhost/loopback dan `DOCUMENT_ENVIRONMENT=development`. Pada source 0.8.3, satu origin HTTPS dapat diizinkan secara eksplisit untuk PDF sintetis melalui `DOCUMENT_DEVELOPMENT_ORIGIN`. Pengguna menyetujui `https://dvp.ilkomith.cloud` untuk uji prototipe; [panduan aktivasi domain](prototype-domain-deployment.md) mencatat konfigurasi dan langkah redeploy. Mengubah `APP_URL` saja tetap tidak mengaktifkan fitur dokumen pada domain. `NODE_ENV=production` di image merupakan mode runtime Next.js dan tidak menggantikan kebijakan dokumen development.
 
 Pekerjaan ini mempertahankan consent development, scanner/retensi yang belum ditetapkan, akses privat serta riwayat immutable. Persetujuan pengujian pada domain tidak memperluas consent ke dokumen nyata atau mengaktifkan kebijakan produksi. Dockerfile bukan klaim bahwa seluruh fitur sudah siap digunakan untuk dokumen produksi.
@@ -69,7 +73,7 @@ Perubahan URL Supabase atau publishable key memerlukan build ulang karena nilai 
 docker compose --env-file .env.local up -d --build
 ```
 
-Setelah image source 0.8.3 sudah digunakan, perubahan secret server, `APP_URL` atau `DOCUMENT_DEVELOPMENT_ORIGIN` memerlukan container baru dengan environment baru:
+Setelah source Compose 0.8.4 dan image yang mendukung opt-in sudah digunakan, perubahan secret server, `APP_URL`, `DOCUMENT_ENVIRONMENT` atau `DOCUMENT_DEVELOPMENT_ORIGIN` memerlukan container baru dengan environment baru:
 
 ```powershell
 docker compose --env-file .env.local up -d --force-recreate
@@ -84,6 +88,16 @@ docker compose --env-file .env.local down
 ```
 
 Tidak ada volume database/dokumen lokal. Menghentikan atau membuat ulang container web tidak menjalankan penghapusan data Supabase. Jangan menyalin respons Auth, token, environment lengkap atau isi PDF privat ke log/chat.
+
+## Regresi konfigurasi Compose
+
+```powershell
+npm run test:docker:config
+```
+
+Pemeriksaan ini memerlukan `docker compose` CLI tetapi tidak memerlukan Docker Engine. Script membuat file env kosong sementara dan environment anak yang hanya berisi nilai aplikasi sintetis, sehingga tidak membaca `.env.local` atau meneruskan credential host. Empat skenario memeriksa runner prototipe, default dokumen yang belum diaktifkan, pewarisan origin pada override development, dan nilai dokumen production yang tidak diubah diam-diam. Output hanya label lulus/gagal, bukan konfigurasi lengkap. CI menjalankannya setelah unit test untuk mendeteksi hilangnya mapping ketika merge.
+
+Pada host dengan binary Compose standalone, gunakan `node scripts/test-compose-config.mjs <path-binary-compose>`. Validasi ini tidak menguji hot reload, filesystem mount, build/run image Linux, koneksi Supabase atau autentikasi peserta pada deployment.
 
 ## Validasi dan batas bukti
 

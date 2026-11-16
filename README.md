@@ -1,5 +1,7 @@
 # Document Verification Platform
 
+**Source 0.8.4 — perbaikan konfigurasi prototipe setelah merge Docker.** Penerusan `DOCUMENT_DEVELOPMENT_ORIGIN` pada service `web` dipulihkan. Gunakan `DOCUMENT_ENVIRONMENT=development` secara eksplisit untuk uji sintetis; fallback Compose `production` dari branch Docker tetap dipertahankan dan belum mengaktifkan kebijakan dokumen produksi. `npm run test:docker:config` memeriksa penerusan environment pada runner dan override dev dengan data sintetis, tanpa Docker Engine atau koneksi Supabase. [Panduan aktivasi](docs/prototype-domain-deployment.md) mencatat penyebab, redeploy dan pemeriksaan di dalam container.
+
 **Source 0.8.3 — uji prototipe pada domain HTTPS yang disetujui.** Pengguna menyetujui `https://dvp.ilkomith.cloud` untuk PDF sintetis. Fitur dokumen/signing dapat diaktifkan dengan `DOCUMENT_ENVIRONMENT=development` dan `DOCUMENT_DEVELOPMENT_ORIGIN` yang sama persis dengan origin `APP_URL`. Nilai baru hanya dibaca server saat runtime; default tetap lokal. [Panduan aktivasi dan pengujian](docs/prototype-domain-deployment.md) memuat langkah redeploy. Ini tidak mengaktifkan kebijakan dokumen produksi, mengubah schema, atau memperluas akses PDF.
 
 **Source 0.8.2 — packaging Docker dengan Node.js 24 dan Supabase cloud.** [Dockerfile](Dockerfile), [.dockerignore](.dockerignore) dan [docker-compose.yml](docker-compose.yml) tersedia. Build standalone memakai dua variable publik, sedangkan secret hanya diberikan pada runtime. [Panduan Docker](docs/docker-deployment.md) menjelaskan perintah build/run, Auth URL, port, healthcheck dan batas pengujian. Gate fitur dokumen development/localhost tetap berlaku; packaging ini tidak membuka fitur dokumen produksi atau mengubah schema Supabase.
@@ -209,15 +211,18 @@ docs/                       Keputusan, setup, preservasi, laporan tiap phase
 
 Seluruh paket dokumentasi, SQL, dan tujuh gambar asli tetap di `Document_Verification_Platform_v1.0.2/document-verification-platform-v1.0.2/`. SHA-256 **41 file asli**, salinan SQL 001/002, dan design tokens diperiksa unit test. Jangan format ulang sumber yang dipertahankan. Keputusan terbaru tercatat di [decision-notes.md](docs/decision-notes.md).
 
-
 ## Cara Run
 
 Lingkunagn Development
+
 ```bash
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
 
 Lingkungan Production
+
 ```bash
 docker compose --env-file .env.production -f docker-compose.yml up -d --build
 ```
+
+Isi konfigurasi pada file yang benar-benar dipakai perintah: deployment di atas membaca `.env.production`, bukan `.env.local`. Untuk uji prototipe sintetis di domain yang sudah disetujui, file tersebut tetap harus memakai `DOCUMENT_ENVIRONMENT=development` dan `DOCUMENT_DEVELOPMENT_ORIGIN` yang sama persis dengan origin `APP_URL`, walaupun runtime Next.js memakai image runner dengan `NODE_ENV=production`. Terapkan perubahan environment dengan membuat ulang container; lihat [panduan aktivasi](docs/prototype-domain-deployment.md).

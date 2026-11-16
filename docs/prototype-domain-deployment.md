@@ -2,6 +2,23 @@
 
 Tanggal: **12 November 2026**, Asia/Makassar. Source **0.8.3**, keputusan **S-16**. Pengguna menyetujui `https://dvp.ilkomith.cloud` untuk **uji prototipe dengan PDF sintetis**, bukan dokumen nyata. [Register keputusan](signing-revision/decision-register.md) mempertahankan batas consent development dan keputusan produksi yang terpisah.
 
+## Perbaikan setelah merge Docker — 16 November 2026/source 0.8.4
+
+Repository pada commit merge `2dd062f` masih memuat validator origin dari 0.8.3, tetapi `docker-compose.yml` tidak lagi meneruskan `DOCUMENT_DEVELOPMENT_ORIGIN` ke service `web`. Fallback `DOCUMENT_ENVIRONMENT` juga berubah menjadi `production`. File `.env.local` yang benar tetap tidak cukup: `--env-file` menyediakan nilai untuk interpolasi Compose, sedangkan container hanya menerima nilai yang diteruskan oleh konfigurasi service.
+
+Keduanya menjelaskan mengapa login berhasil tetapi kode akun dan daftar dokumen masih gagal: `getSigningUserCode()` dan daftar dokumen memakai gate konfigurasi yang sama sebelum query data. Source **0.8.4** memulihkan mapping berikut pada `services.web.environment` sambil mempertahankan pilihan image/target, override development, dan fallback production dari branch Docker:
+
+```yaml
+DOCUMENT_ENVIRONMENT: ${DOCUMENT_ENVIRONMENT:-production}
+DOCUMENT_DEVELOPMENT_ORIGIN: ${DOCUMENT_DEVELOPMENT_ORIGIN:-}
+```
+
+Isi `DOCUMENT_ENVIRONMENT=development` pada file environment server untuk prototipe yang disetujui. `NODE_ENV=production` dan build target `runner` tetap sesuai untuk menjalankan Next.js hasil build; keduanya tidak menentukan kebijakan dokumen. Jangan mengubah nama variabel origin menjadi `NEXT_PUBLIC_` atau menyalin secret ke build argument.
+
+Pemeriksaan `npm run test:docker:config` baru menolak konfigurasi hasil merge sebelum mapping diperbaiki. Script hanya mengevaluasi Compose dengan nilai sintetis, tanpa Engine, container atau Supabase. Setelah perbaikan, **empat skenario lulus**: penerusan origin runner, default dokumen belum aktif, pewarisan origin override dev, dan nilai production eksplisit yang tetap dipertahankan. CI juga akan menjalankan pemeriksaan ini.
+
+Verifikasi lokal **16 November 2026**, Node.js **24.22.2**, Windows: 896 unit test/38 file lulus; lint, typecheck, build production biasa serta format lulus. File override dev hanya diberi newline akhir yang diperlukan pemeriksaan format, tanpa perubahan perilaku. Checksum 41 file paket asli dan lima receipt cloud historis tetap cocok; 58 tautan lokal pada tiga dokumen yang diperbarui diperiksa. Tidak ada perubahan kode aplikasi, SQL, RLS, data cloud atau credential. Penerapan server, perjalanan user pada deployment dan build/run image Linux belum diperiksa; label lulus source tidak membuktikan container cloud sudah diperbarui.
+
 ## Penyebab error dan perubahan
 
 Source sebelumnya membatasi `getSubmissionConfiguration()` pada loopback. Konfigurasi signing memakai fungsi yang sama: daftar dokumen, draft, undangan, keputusan dan bukti yang bergantung padanya ditolak sebelum operasi terkait dijalankan. Karena itu login dapat berhasil tetapi `/signing/documents` menampilkan layanan belum tersedia dan `/submit` menampilkan error workspace setelah `APP_URL` diubah menjadi domain deployment.
@@ -13,6 +30,8 @@ Variabel baru dibaca saat request pada server. Nilai itu tidak menjadi build arg
 ## Konfigurasi pada server deployment
 
 Perbarui file environment **di server tempat container berjalan**, sambil mempertahankan credential Supabase yang sudah diisi secara privat:
+
+Gunakan file yang benar-benar disebut pada perintah deployment. README branch Docker memakai `--env-file .env.production` untuk runner deployment, sedangkan contoh panduan ini memakai `.env.local`. Jika server Anda memakai `.env.production`, isi nilai berikut pada file itu dan ganti seluruh `--env-file .env.local` pada perintah di bawah menjadi `--env-file .env.production`. Mengedit `.env.local` tidak mengubah nilai yang Compose baca dari `.env.production`.
 
 ```dotenv
 APP_URL=https://dvp.ilkomith.cloud
@@ -34,7 +53,7 @@ Reverse proxy harus meneruskan host dan protokol HTTPS yang sesuai. Pemeriksaan 
 
 ## Terapkan source dan konfigurasi
 
-Salin atau tarik source **0.8.3** ke server melalui alur deployment yang sudah digunakan. Source baru mencakup pembacaan opt-in serta penerusannya pada `docker-compose.yml`; container dengan image lama belum mendukung variabel itu.
+Salin atau tarik source **0.8.4** ke server melalui alur deployment yang sudah digunakan. Source baru mencakup pemulihan penerusan opt-in pada `docker-compose.yml`; image aplikasi harus sudah mendukung pembacaan opt-in dari 0.8.3 atau lebih baru. Menampilkan versi package 0.8.3 saja tidak membuktikan Compose hasil merge masih meneruskan nilainya.
 
 Dari folder proyek di server:
 
@@ -46,7 +65,7 @@ docker compose --env-file .env.local ps
 
 `config --quiet` memeriksa struktur tanpa mencetak credential. Perubahan ini tidak memerlukan migration, SQL baru, seed atau reset database. Jangan menjalankan ulang migration 001–012 atau runner pembuat fixture historis.
 
-Setelah image 0.8.3 sudah berjalan, perubahan pada opt-in runtime cukup diterapkan dengan `up -d --force-recreate web`. Mengosongkan `DOCUMENT_DEVELOPMENT_ORIGIN` menonaktifkan fitur yang bergantung pada konfigurasi ini di domain setelah container dibuat ulang; data dan riwayat tidak dihapus. Mengubah domain tidak mengubah URL QR yang sudah tertanam pada PDF lama.
+Setelah Compose 0.8.4 dan image yang mendukung opt-in sudah diterapkan, perubahan pada opt-in runtime cukup diterapkan dengan `up -d --force-recreate web`. `docker compose restart` saja tidak membuat ulang environment container. Mengosongkan `DOCUMENT_DEVELOPMENT_ORIGIN` menonaktifkan fitur yang bergantung pada konfigurasi ini di domain setelah container dibuat ulang; data dan riwayat tidak dihapus. Mengubah domain tidak mengubah URL QR yang sudah tertanam pada PDF lama.
 
 ## Pemeriksaan setelah redeploy
 
@@ -61,6 +80,18 @@ Jika error masih muncul, periksa bahwa image dan Compose terbaru benar-benar dit
 ```bash
 docker compose --env-file .env.local exec -T web node -e 'console.log(JSON.stringify({APP_URL:process.env.APP_URL,DOCUMENT_ENVIRONMENT:process.env.DOCUMENT_ENVIRONMENT,DOCUMENT_DEVELOPMENT_ORIGIN:process.env.DOCUMENT_DEVELOPMENT_ORIGIN}))'
 ```
+
+Hasil yang diharapkan, tanpa secret:
+
+```json
+{
+  "APP_URL": "https://dvp.ilkomith.cloud",
+  "DOCUMENT_ENVIRONMENT": "development",
+  "DOCUMENT_DEVELOPMENT_ORIGIN": "https://dvp.ilkomith.cloud"
+}
+```
+
+Jika origin development tidak muncul/kosong, mapping Compose atau container yang berjalan belum diperbarui. Jika environment dokumen masih `production`, periksa file env yang dipakai serta override environment shell/deployment. Jika tiga nilai sudah sesuai tetapi UI masih gagal, saat sedang login buka `/api/v2/me/user-code` pada domain yang sama dan lihat hanya `error.code`: `UPLOAD_UNAVAILABLE` mengarah ke gate konfigurasi, sedangkan `SIGNING_UNAVAILABLE` memerlukan pemeriksaan query/schema/koneksi berikutnya. Jangan membagikan cookie/token atau hasil `data.code` pengguna untuk diagnosis.
 
 Jika ketiganya sesuai tetapi error berlanjut, periksa log aplikasi secara privat dan status migration pada project Supabase yang dipakai image. Jangan mengirim token, password, secret, cookie atau metadata/PDF privat ke chat. Error umum pada UI dapat mewakili kegagalan lain; aktivasi origin tidak membuktikan koneksi database atau Storage.
 
