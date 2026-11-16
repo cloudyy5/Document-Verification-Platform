@@ -18,6 +18,7 @@ test("halaman privat mengharuskan login dan mempertahankan tujuan internal", asy
   for (const pathname of [
     "/dashboard",
     "/documents",
+    "/documents/legacy",
     "/submit",
     "/verify",
     "/profile",
@@ -43,6 +44,14 @@ test("halaman privat mengharuskan login dan mempertahankan tujuan internal", asy
   const identity = await request.get("/api/v1/me", { maxRedirects: 0 });
   expect(identity.status()).toBe(401);
   expect(identity.headers()["cache-control"]).toContain("no-store");
+  for (const [pathname, cameraPolicy] of [
+    ["/verify", "camera=(self), microphone=(), geolocation=()"],
+    ["/documents/legacy", "camera=(), microphone=(), geolocation=()"],
+  ]) {
+    const response = await request.get(pathname!, { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    expect(response.headers()["permissions-policy"]).toBe(cameraPolicy);
+  }
   for (const pathname of ["/auth/confirm", "/auth/callback"]) {
     const response = await request.head(pathname, { maxRedirects: 0 });
     expect(response.status()).toBe(405);

@@ -209,7 +209,7 @@ export function SigningDocumentsList({
       </section>
       <p className="text-xs leading-6 text-subtle">
         Pengajuan pemeriksaan administratif terdahulu tetap tersedia di{" "}
-        <Link href="/documents" className="font-medium text-primary">
+        <Link href="/documents/legacy" className="font-medium text-primary">
           arsip dokumen
         </Link>
         .

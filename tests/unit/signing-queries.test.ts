@@ -5,6 +5,9 @@ type Query = {
   table: string;
   select: ReturnType<typeof vi.fn>;
   eq: ReturnType<typeof vi.fn>;
+  ilike: ReturnType<typeof vi.fn>;
+  gt: ReturnType<typeof vi.fn>;
+  lte: ReturnType<typeof vi.fn>;
   order: ReturnType<typeof vi.fn>;
   limit: ReturnType<typeof vi.fn>;
   or: ReturnType<typeof vi.fn>;
@@ -104,6 +107,9 @@ function builder(table: string): Query {
     table,
     select: vi.fn(),
     eq: vi.fn(),
+    ilike: vi.fn(),
+    gt: vi.fn(),
+    lte: vi.fn(),
     order: vi.fn(),
     limit: vi.fn(),
     or: vi.fn(),
@@ -119,6 +125,9 @@ function builder(table: string): Query {
     "or",
     "in",
     "maybeSingle",
+    "ilike",
+    "gt",
+    "lte",
   ] as const)
     query[method].mockReturnValue(query);
   mocks.queries.push(query);
@@ -144,6 +153,34 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("signing DAL query contracts (mocked SDK; native database tests prove RLS)", () => {
+  it.each(["pending", "expired", "completed"] as const)(
+    "filters archive status %s before pagination",
+    async (status) => {
+      mocks.replies.signing_requests = [reply([])];
+      await getSigningRequests({ scope: "received", status });
+      expect(mocks.queries[0]!.eq).toHaveBeenCalledWith("recipient_id", owner);
+      expect(mocks.queries[0]!.eq).toHaveBeenCalledWith(
+        "status",
+        status === "expired" ? "pending" : status,
+      );
+      if (status === "pending")
+        expect(mocks.queries[0]!.gt).toHaveBeenCalledWith(
+          "expires_at",
+          "2026-11-05T12:00:00.000Z",
+        );
+      if (status === "expired")
+        expect(mocks.queries[0]!.lte).toHaveBeenCalledWith(
+          "expires_at",
+          "2026-11-05T12:00:00.000Z",
+        );
+    },
+  );
+  it("escapes wildcard title searches without widening owner scope", async () => {
+    mocks.replies.signing_document_versions = [reply([])];
+    await getSigningDocuments({ q: "50%_" });
+    expect(mocks.queries[0]!.ilike).toHaveBeenCalledWith("title", "%50\\%\\_%");
+    expect(mocks.queries[0]!.eq).toHaveBeenCalledWith("owner_id", owner);
+  });
   it.each([
     ["own code", () => getSigningUserCode()],
     ["own drafts", () => getSigningDocuments()],

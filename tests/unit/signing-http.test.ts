@@ -340,7 +340,7 @@ describe("R2 HTTP contracts with mocked domain services", () => {
     expect(mocks.requests).not.toHaveBeenCalled();
   });
 
-  it.each(["scope=all", "owner_id=forged", "status=completed", "q=someone"])(
+  it.each(["scope=all", "owner_id=forged", "status=approved", "q=someone"])(
     "rejects unsupported invitation list query %s",
     async (query) => {
       const response = await requests(
@@ -371,6 +371,29 @@ describe("R2 HTTP contracts with mocked domain services", () => {
       limit: "5",
     });
   });
+
+  it.each([
+    "pending",
+    "expired",
+    "completed",
+    "rejected",
+    "cancelled",
+    "consented",
+  ])(
+    "forwards supported archive status %s without accepting another account scope",
+    async (status) => {
+      const response = await requests(
+        new Request(
+          `${origin}/api/v2/signing-requests?scope=sent&status=${status}`,
+        ),
+      );
+      assertPrivate(response, 200);
+      expect(mocks.requests).toHaveBeenCalledExactlyOnceWith({
+        scope: "sent",
+        status,
+      });
+    },
+  );
 
   it("keeps own-code and draft lists private without fabricating counts", async () => {
     const codeResponse = await code();

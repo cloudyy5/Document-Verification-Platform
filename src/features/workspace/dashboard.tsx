@@ -17,39 +17,43 @@ import type { DashboardData } from "./types";
 
 export function WorkspaceDashboard({ data }: { data: DashboardData }) {
   const metrics = [
-    { label: "Total dokumen", count: data.counts.total, href: "/documents" },
+    {
+      label: "Total dokumen",
+      count: data.counts.total,
+      href: "/documents/legacy",
+    },
     {
       label: "Menunggu review",
       count: data.counts.pendingReview,
-      href: "/documents?status=pending_review",
+      href: "/documents/legacy?status=pending_review",
     },
     {
       label: "Disetujui",
       count: data.counts.approved,
-      href: "/documents?status=approved",
+      href: "/documents/legacy?status=approved",
     },
     {
       label: "Perlu revisi",
       count: data.counts.revisionRequested,
-      href: "/documents?status=revision_requested",
+      href: "/documents/legacy?status=revision_requested",
     },
     {
       label: "Ditolak",
       count: data.counts.rejected,
-      href: "/documents?status=rejected",
+      href: "/documents/legacy?status=rejected",
     },
     {
       label: "Dicabut",
       count: data.counts.revoked,
-      href: "/documents?status=revoked",
+      href: "/documents/legacy?status=revoked",
     },
   ];
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="User workspace"
-        title="Ringkasan"
-        description="Siapkan dokumen persetujuan internal dan pantau permintaan antar pengguna."
+        title="Ringkasan pengajuan lama"
+        description="Jumlah dan riwayat dari alur pemeriksaan administratif terdahulu."
         actions={
           <Button asChild className="w-full sm:w-auto">
             <Link href="/signing/new">
@@ -143,7 +147,7 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               <FileText size={18} aria-hidden="true" /> Pengajuan arsip terbaru
             </h2>
             <Link
-              href="/documents"
+              href="/documents/legacy"
               className="inline-flex min-h-11 items-center gap-2 text-xs font-medium text-primary"
             >
               Lihat semua <ArrowRight size={15} aria-hidden="true" />
@@ -158,7 +162,7 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               description="Pengajuan dari alur pemeriksaan administratif terdahulu akan ditampilkan di sini. Dokumen persetujuan internal tersedia pada ruang dokumen terpisah."
             >
               <Button asChild variant="secondary">
-                <Link href="/documents">Buka arsip dokumen</Link>
+                <Link href="/documents/legacy">Buka arsip dokumen</Link>
               </Button>
             </EmptyState>
           )}
@@ -169,8 +173,8 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               <ScanLine size={18} aria-hidden="true" /> Pemeriksaan arsip
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Pilih metode kode, QR, atau pencocokan PDF untuk memahami alur
-              pemeriksaan dokumen Anda.
+              Buka bukti persetujuan internal melalui QR atau ID bukti, lalu
+              cocokkan file PDF pada perangkat Anda.
             </p>
             <Button asChild variant="secondary" className="mt-4 w-full">
               <Link href="/verify">
@@ -178,8 +182,8 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               </Link>
             </Button>
             <p className="mt-3 text-xs leading-5 text-subtle">
-              Metode pemeriksaan belum diaktifkan. Hanya dokumen milik akun Anda
-              yang dapat diperiksa.
+              Memerlukan bukti persetujuan internal dan akses sebagai peserta.
+              Status administratif lama bukan tanda tangan penerima.
             </p>
           </section>
           <section className="panel p-5">

@@ -38,6 +38,12 @@ export function SigningEvidenceView({
         <ArrowLeft size={16} aria-hidden="true" />
         Kembali ke permintaan
       </Link>
+      <Link
+        href={`/verify?method=pdf&receipt=${encodeURIComponent(evidence.id)}`}
+        className="inline-flex min-h-11 items-center text-sm font-semibold text-primary"
+      >
+        Cocokkan file dengan bukti ini
+      </Link>
       <PageHeader
         eyebrow="Persetujuan internal"
         title="Bukti persetujuan"

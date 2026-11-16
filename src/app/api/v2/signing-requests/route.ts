@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams;
     if (
       [...params.keys()].some(
-        (key) => !["scope", "cursor", "limit"].includes(key),
+        (key) => !["scope", "cursor", "limit", "status"].includes(key),
       )
     )
       throw new ApiError(
@@ -28,6 +28,20 @@ export async function GET(request: Request) {
       scope,
       ...(params.has("cursor") ? { cursor: params.get("cursor")! } : {}),
       ...(params.has("limit") ? { limit: params.get("limit")! } : {}),
+      ...(params.has("status")
+        ? {
+            status: z
+              .enum([
+                "pending",
+                "expired",
+                "cancelled",
+                "rejected",
+                "consented",
+                "completed",
+              ])
+              .parse(params.get("status")),
+          }
+        : {}),
     });
   });
 }

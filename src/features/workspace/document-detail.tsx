@@ -150,10 +150,10 @@ export function DocumentDetailWorkspace({
   return (
     <div className="space-y-6">
       <Link
-        href="/documents"
+        href="/documents/legacy"
         className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft size={16} aria-hidden="true" /> Dokumen saya
+        <ArrowLeft size={16} aria-hidden="true" /> Pengajuan lama
       </Link>
       <PageHeader
         eyebrow="User workspace"

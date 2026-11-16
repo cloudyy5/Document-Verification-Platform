@@ -1,5 +1,7 @@
 # Rebaseline Document Verification Platform — persetujuan internal V1
 
+**Source 0.10.0, 16 November 2026 — S-17:** menu Arsip Administratif dipertahankan dan dihubungkan dengan data signing saat ini, tanpa menghapus pengajuan lama. Verifikasi arsip memakai bukti privat dan pencocokan PDF lokal. [Laporan arsip](../administrative-archive-report.md) memuat perilaku ketiga menu, pengujian dan redeploy tanpa migration.
+
 **Pembaruan source 0.8.1, 11 November 2026 — S-15:** akun `platform_admin` hanya memakai Admin Workspace. Login email/password biasa otomatis memilih dashboard sesuai role; hint menuju halaman pengguna tidak mengembalikan admin ke User Workspace. Profil/preferensi akun sendiri tetap tersedia dengan shell admin. [Laporan implementasi dan uji](admin-workspace-report.md) membedakan pengujian lokal dari sesi cloud yang masih diperlukan; tidak ada migration baru atau perubahan role cloud otomatis.
 
 **Checkpoint 11 November 2026 — source R4 v0.8.0.** S-11 sudah disetujui: monitoring baca-saja khusus platform admin, aktivitas dokumen 30 hari dan hasil PDF perlu perhatian. [Kontrak](r4-implementation-contract.md) serta [laporan R4](r4-report.md) memuat halaman/API, RPC serta 805 unit/365 SQL native yang lulus. Migration 012 dilaporkan berhasil dipasang dan [preflight API](r4-activation-check.md) lulus 49 pemeriksaan. [Setup admin dan uji baca-saja](r4-cloud-acceptance-plan.md) adalah langkah berikutnya; penerimaan sesi admin cloud belum dibuktikan. R5 belum dimulai. Checkpoint 10 November di bawah mencatat hasil R3b sebelumnya.

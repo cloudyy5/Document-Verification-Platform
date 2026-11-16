@@ -1,5 +1,7 @@
 # Document Verification Platform
 
+**Source 0.10.0 — Arsip Administratif tetap tersedia dan berfungsi.** Ringkasan menampilkan data persetujuan akun sendiri; Dokumen terdahulu menyediakan tab dokumen sendiri, terkirim, diterima dan pengajuan lama. Verifikasi arsip membaca QR/ID bukti privat serta mencocokkan PDF secara lokal. Data lama, akses peserta dan batas admin dipertahankan. [Laporan dan cara memakai arsip](docs/administrative-archive-report.md) memuat pengujian serta langkah redeploy. Tidak perlu migration atau environment baru.
+
 **Source 0.9.0 — notifikasi akun di dalam aplikasi.** Lonceng header kini membaca notifikasi tersimpan dari Supabase, menampilkan jumlah belum dibaca, membuka permintaan terkait, serta menyimpan status dibaca. Panel mendukung mobile, tema terang/gelap, pagination, dan error tanpa mengganti hasil gagal menjadi nol. [Laporan implementasi](docs/in-app-notifications-report.md) menjelaskan cakupan peristiwa, polling dan pemeriksaan. Tidak ada migration, environment baru, email atau izin membaca dokumen tambahan.
 
 **Source 0.8.4 — perbaikan konfigurasi prototipe setelah merge Docker.** Penerusan `DOCUMENT_DEVELOPMENT_ORIGIN` pada service `web` dipulihkan. Gunakan `DOCUMENT_ENVIRONMENT=development` secara eksplisit untuk uji sintetis; fallback Compose `production` dari branch Docker tetap dipertahankan dan belum mengaktifkan kebijakan dokumen produksi. `npm run test:docker:config` memeriksa penerusan environment pada runner dan override dev dengan data sintetis, tanpa Docker Engine atau koneksi Supabase. [Panduan aktivasi](docs/prototype-domain-deployment.md) mencatat penyebab, redeploy dan pemeriksaan di dalam container.
@@ -54,20 +56,22 @@ Konfigurasi pengajuan ditujukan untuk development dengan Supabase Free. Default 
 | `/reset-password`                                                   | Password baru memerlukan token recovery terverifikasi dan grant sekali pakai                             |
 | `/foundation`                                                       | Pratinjau komponen publik dan tema                                                                       |
 | `/policies/submission`                                              | Kebijakan pengajuan development yang dapat dibaca sebelum consent                                        |
-| `/dashboard`                                                        | Ringkasan jumlah dan pengajuan terbaru dari data akun sendiri                                            |
+| `/dashboard`                                                        | Ringkasan dokumen/persetujuan akun sendiri; `?source=legacy` membuka ringkasan alur lama                 |
 | `/signing/documents`, `/signing/new`                                | Draft privat model persetujuan internal; upload memakai consent development baru                         |
 | `/signing/documents/[documentId]`                                   | Versi sumber, lookup satu kode penerima, consent berbagi dan pengiriman undangan                         |
 | `/requests/incoming`, `/requests/outgoing`, `/requests/[requestId]` | Kotak masuk/keluar, status aktual, preview jika grant masih berlaku dan pembatalan oleh pemilik          |
-| `/documents`                                                        | Daftar owner-only dengan pencarian judul, kategori, status, tanggal, dan cursor pagination               |
+| `/documents`                                                        | Arsip dokumen sendiri serta permintaan terkirim/masuk, pencarian/filter status dan cursor pagination     |
+| `/documents/legacy`                                                 | Pengajuan pemeriksaan lama milik akun, dengan filter judul/kategori/status/tanggal                       |
 | `/documents/[documentId]`                                           | Metadata, status, PDF privat, snapshot versi, catatan dan checklist review                               |
 | `/submit`                                                           | Pengajuan PDF dan metadata; wajib login, email terverifikasi, consent aktif, dan konfigurasi development |
 | `/documents/[documentId]/resubmit`                                  | Versi baru untuk dokumen sendiri yang berstatus `revision_requested`                                     |
 | `/profile`                                                          | Pembaruan nama/telepon sendiri, email readonly, pemulihan password, dan preferensi tema                  |
-| `/verify`                                                           | Tiga metode ditampilkan sebagai shell; kamera, kode, upload perbandingan, dan hasil belum aktif          |
+| `/verify`                                                           | QR kamera/gambar, ID/tautan bukti privat, pencocokan hash PDF lokal; hanya peserta yang berhak           |
 | `/admin/overview`, `/admin/operations`                              | Platform admin terverifikasi; statistik agregat dan metadata proses minimum, baca-saja                   |
 | `/admin/review-queue`, `/admin/review-history`                      | Reviewer; fungsi antrean dan keputusan review belum diaktifkan                                           |
 | `GET /api/v1/me`                                                    | Identitas dan role akun sendiri                                                                          |
 | `GET /api/v2/me/user-code`                                          | Kode akun sendiri, tanpa direktori pengguna                                                              |
+| `GET /api/v2/archive/summary`                                       | Ringkasan dokumen dan permintaan akun sendiri, tanpa statistik global atau izin tambahan                 |
 | `POST /api/v2/recipients/lookup`                                    | Pencarian exact kode pengguna lain terverifikasi; hasil hanya ID, kode dan nama tampilan                 |
 | `GET/POST /api/v2/signing-documents`                                | Daftar draft sendiri atau upload draft baru                                                              |
 | `GET /api/v2/signing-documents/[documentId]`                        | Metadata versi sumber yang boleh dibaca                                                                  |
@@ -145,6 +149,8 @@ npm run test:db
 npm run test:pdf:signing
 npm run test:pdf:movable
 npm run test:ui:qr
+npm run test:ui:notifications
+npm run test:ui:archive
 npm run build
 npx playwright install chromium
 npm run test:e2e

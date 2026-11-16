@@ -15,6 +15,7 @@ test("API workspace privat menolak guest sebelum membaca atau mengubah data", as
     "/api/v1/categories",
     "/api/v1/documents",
     "/api/v1/notifications",
+    "/api/v2/archive/summary",
     `/api/v1/documents/${documentId}`,
     `/api/v1/documents/${documentId}/file`,
   ]) {
@@ -101,8 +102,13 @@ test.describe("workspace synthetic-account smoke (explicit opt-in)", () => {
     expect(Boolean(account.data?.user?.emailConfirmed)).toBe(true);
 
     for (const [pathname, heading, screenshot] of [
-      ["/dashboard", "Ringkasan", "workspace-dashboard-light.png"],
-      ["/documents", "Dokumen saya", "workspace-documents-light.png"],
+      ["/dashboard", "Ringkasan arsip", "workspace-dashboard-light.png"],
+      ["/documents", "Dokumen terdahulu", "workspace-documents-light.png"],
+      [
+        "/documents/legacy",
+        "Pengajuan administratif lama",
+        "workspace-legacy-light.png",
+      ],
       ["/profile", "Profil & preferensi", "workspace-profile-light.png"],
     ]) {
       await page.goto(pathname);

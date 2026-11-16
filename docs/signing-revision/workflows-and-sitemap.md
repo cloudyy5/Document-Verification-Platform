@@ -91,6 +91,8 @@ Ukuran detail atau jumlah tabel mengikuti tugas layar. Rincian kartu/dashboard t
 
 ## 4. Route R2 dan target berikutnya
 
+**Pembaruan S-17/source 0.10.0 (16 November 2026):** ketiga menu Arsip Administratif tetap tersedia. `/dashboard` merangkum dokumen/permintaan signing akun sendiri; `/documents` mempunyai tab Dokumen saya/Saya kirim/Saya terima/Pengajuan lama. Pengajuan pemeriksaan lama berpindah daftar ke `/documents/legacy` dengan detail `/documents/:id` tetap utuh. `/verify` kini membaca QR kamera/gambar atau ID/tautan bukti, serta membandingkan hash PDF lokal dengan bukti privat `/receipts/:receiptId` yang sudah tersedia. Admin tidak mendapat akses dokumen baru. [Laporan arsip](../administrative-archive-report.md) menjadi acuan perilaku terbaru; tabel kandidat/checkpoint R2 di bawah dipertahankan sebagai sejarah rancangan.
+
 Route draft/undangan berikut tersedia pada source R2. Route bukti/admin tambahan masih target dan tidak memperoleh permission hanya dari sitemap. Aktivasi cloud R2 mengikuti migration 009; `/documents` serta `/submit` tetap jalur administratif legacy.
 
 | Tujuan                   | Kandidat route                                                           |
@@ -135,7 +137,7 @@ Copy antarmuka berfokus pada tindakan dan makna hasil. Detail migration, service
 | `/admin/review-queue`, review detail/history | Tidak diteruskan sebagai alur rutin produk baru; route/role lama harus ditinjau dalam migrasi, bukan diganti label menjadi tanda tangan            |
 | `/submit` Phase 3                            | Masih mengirim submission administratif pada baseline; jangan memberi copy baru yang menjanjikan permintaan tanda tangan sampai backend baru aktif |
 | `/documents/:id`                             | Metadata dan status legacy dipertahankan; rencana perlu pemisahan mode/model yang mencegah salah tafsir record lama                                |
-| `/verify` shell lama                         | Tidak otomatis menjadi verifikasi publik atau pemeriksa tanda tangan baru                                                                          |
+| `/verify`                                    | S-17 mengaktifkan QR/ID bukti dan pencocokan hash PDF lokal untuk peserta sah; tidak menjadi verifikasi publik atau pemeriksa sertifikat TTE       |
 | Profil/tema/komponen                         | Digunakan kembali, dengan kode akun/QR identitas hanya setelah kontrak identifier aman dan server-nya tersedia                                     |
 | Navigation admin                             | Baru boleh menampilkan fitur operasional yang sudah tersedia dan diotorisasi; menu tidak menandakan permission aktif                               |
 

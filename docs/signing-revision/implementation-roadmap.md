@@ -74,6 +74,8 @@ Pintu keluar: migration additive 011 dilaporkan terpasang dan preflight API lulu
 
 ## R4 — Admin monitoring dan operasional
 
+**16 November 2026/source 0.10.0 — arsip pengguna S-17:** ketiga menu Arsip Administratif dipertahankan. Ringkasan/daftar kini membaca model signing yang dipakai pengguna, sedangkan pengajuan lama tetap tersedia tersendiri. QR/ID bukti dan pencocokan PDF lokal memerlukan hak peserta yang sudah ada. [Laporan arsip](../administrative-archive-report.md) mencatat perubahan dan batas pengujian. Tidak ada migration, perubahan wewenang admin, penghapusan riwayat, atau aktivasi R5/S-12.
+
 **16 November 2026/source 0.9.0 — pelengkap notifikasi akun:** [laporan notifikasi in-app](../in-app-notifications-report.md) menghubungkan lonceng header dengan row notifikasi yang sudah dibuat transaksi R2/R3. Daftar/count/read menggunakan cookie client, owner filter dan RLS yang sudah ada. Ini fitur akun sendiri, tanpa statistik global atau akses PDF baru bagi admin. Tidak memerlukan migration dan tidak menutup R5/S-12 atau memperluas kanal S-10 ke email/SMS.
 
 **Penyempurnaan S-15/source 0.8.1:** [workspace admin eksklusif dan login sesuai role](admin-workspace-report.md) menambahkan pembatasan navigasi, halaman/API pengguna dan tujuan login admin, tanpa migration baru. Profil/preferensi akun sendiri tetap di shell admin. Ini bagian R4; R5 belum dimulai.

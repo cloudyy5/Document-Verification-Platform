@@ -1,20 +1,30 @@
 import type { Metadata } from "next";
 import {
-  VerifyWorkspace,
+  ArchiveVerification,
   type VerificationMethod,
-} from "@/features/workspace/verify-workspace";
+} from "@/features/archive/verification";
+import { getAppOrigin } from "@/lib/auth/config";
 import { requireUserWorkspace } from "@/lib/auth/session";
 
-export const metadata: Metadata = { title: "Periksa dokumen" };
+export const metadata: Metadata = { title: "Verifikasi arsip" };
 
 export default async function VerifyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ method?: string }>;
+  searchParams: Promise<{ method?: string; receipt?: string }>;
 }) {
   await requireUserWorkspace("/verify");
-  const { method } = await searchParams;
+  const { method, receipt } = await searchParams;
   const initialMethod: VerificationMethod =
     method === "code" || method === "pdf" ? method : "qr";
-  return <VerifyWorkspace initialMethod={initialMethod} />;
+  const initialReceipt =
+    typeof receipt === "string" && receipt.length <= 2048 ? receipt : "";
+  return (
+    <ArchiveVerification
+      key={`${initialMethod}:${initialReceipt}`}
+      initialMethod={initialMethod}
+      initialReceipt={initialReceipt}
+      canonicalOrigin={getAppOrigin()}
+    />
+  );
 }

@@ -31,13 +31,16 @@ import type {
   DocumentSummary,
 } from "./types";
 
-export function documentListHref(filters: DocumentFilters): string {
+export function documentListHref(
+  filters: DocumentFilters,
+  basePath = "/documents",
+): string {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (value !== undefined && value !== "") query.set(key, String(value));
   }
   const suffix = query.toString();
-  return suffix ? `/documents?${suffix}` : "/documents";
+  return suffix ? `${basePath}?${suffix}` : basePath;
 }
 
 export function DocumentRows({ items }: { items: DocumentSummary[] }) {
@@ -177,11 +180,15 @@ export function DocumentsWorkspace({
   result,
   categories,
   filters,
+  basePath = "/documents",
 }: {
   result: DocumentListResult;
   categories: Category[];
   filters: DocumentFilters;
+  basePath?: string;
 }) {
+  const listHref = (value: DocumentFilters) =>
+    documentListHref(value, basePath);
   const activeFilters = Boolean(
     filters.q ||
     filters.status ||
@@ -193,19 +200,23 @@ export function DocumentsWorkspace({
     <div className="space-y-6">
       <PageHeader
         eyebrow="User workspace"
-        title="Dokumen saya"
+        title={
+          basePath === "/documents/legacy"
+            ? "Pengajuan administratif lama"
+            : "Dokumen saya"
+        }
         description="Lihat pengajuan, status pemeriksaan, dan riwayat dokumen milik Anda."
         actions={
           <Button asChild className="w-full sm:w-auto">
-            <Link href="/submit">
-              <Plus aria-hidden="true" /> Ajukan dokumen baru
+            <Link href="/signing/new">
+              <Plus aria-hidden="true" /> Buat draft persetujuan
             </Link>
           </Button>
         }
       />
       <nav aria-label="Filter status dokumen" className="flex flex-wrap gap-2">
         <Link
-          href={documentListHref({
+          href={listHref({
             ...filters,
             status: undefined,
             cursor: undefined,
@@ -223,7 +234,7 @@ export function DocumentsWorkspace({
         {Object.entries(documentStatusLabels).map(([status, label]) => (
           <Link
             key={status}
-            href={documentListHref({
+            href={listHref({
               ...filters,
               status: status as DocumentFilters["status"],
               cursor: undefined,
@@ -242,7 +253,7 @@ export function DocumentsWorkspace({
       </nav>
       <section className="panel" aria-label="Pencarian dan daftar dokumen">
         <form
-          action="/documents"
+          action={basePath}
           method="get"
           className="space-y-4 border-b border-border p-4 sm:p-5"
         >
@@ -357,7 +368,7 @@ export function DocumentsWorkspace({
             </Button>
             {activeFilters && (
               <Button asChild variant="ghost">
-                <Link href="/documents">Bersihkan filter</Link>
+                <Link href={basePath}>Bersihkan filter</Link>
               </Button>
             )}
           </div>
@@ -375,18 +386,16 @@ export function DocumentsWorkspace({
             description={
               activeFilters || filters.cursor
                 ? "Coba ubah kata pencarian, status, atau rentang tanggal untuk melihat dokumen Anda."
-                : "Ajukan PDF pertama Anda untuk mulai mengikuti proses pemeriksaan administratif."
+                : "Belum ada pengajuan administratif lama pada akun ini. Dokumen persetujuan saat ini tersedia pada daftar arsip utama."
             }
           >
             <Button asChild variant={activeFilters ? "secondary" : "primary"}>
               <Link
-                href={
-                  activeFilters || filters.cursor ? "/documents" : "/submit"
-                }
+                href={activeFilters || filters.cursor ? basePath : "/documents"}
               >
                 {activeFilters || filters.cursor
                   ? "Lihat semua dokumen"
-                  : "Ajukan dokumen"}
+                  : "Buka arsip persetujuan"}
               </Link>
             </Button>
           </EmptyState>
@@ -401,9 +410,7 @@ export function DocumentsWorkspace({
           >
             {filters.cursor ? (
               <Button variant="secondary" asChild>
-                <Link
-                  href={documentListHref({ ...filters, cursor: undefined })}
-                >
+                <Link href={listHref({ ...filters, cursor: undefined })}>
                   <ArrowLeft aria-hidden="true" /> Awal daftar
                 </Link>
               </Button>
@@ -415,7 +422,7 @@ export function DocumentsWorkspace({
             {result.nextCursor ? (
               <Button variant="secondary" asChild>
                 <Link
-                  href={documentListHref({
+                  href={listHref({
                     ...filters,
                     limit: result.limit,
                     cursor: result.nextCursor,

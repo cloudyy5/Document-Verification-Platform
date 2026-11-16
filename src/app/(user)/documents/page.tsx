@@ -1,84 +1,51 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/ui/error-state";
-import { PageHeader } from "@/components/ui/page-header";
-import { DocumentsWorkspace } from "@/features/workspace/document-list";
-import type {
-  Category,
-  DocumentFilters,
-  DocumentListResult,
-} from "@/features/workspace/types";
 import { requireUserWorkspace } from "@/lib/auth/session";
+import { archiveFiltersSchema } from "@/lib/archive/schema";
 import {
-  getWorkspaceCategories,
-  getWorkspaceDocuments,
-  WorkspaceValidationError,
-} from "@/server/workspace/queries";
-
-export const metadata: Metadata = { title: "Dokumen saya" };
-
-export default async function DocumentsPage({
+  getSigningDocuments,
+  getSigningRequests,
+} from "@/server/signing/queries";
+import { ArchiveDocumentList } from "@/features/archive/document-list";
+import { SigningUnavailable } from "@/features/signing/states";
+import { ErrorState } from "@/components/ui/error-state";
+import { ApiError } from "@/server/errors";
+export const metadata: Metadata = { title: "Dokumen terdahulu" };
+export default async function ArchiveDocumentsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await requireUserWorkspace("/documents");
-  const input = await searchParams;
-  let result: DocumentListResult | null = null;
-  let categories: Category[] = [];
-  try {
-    [result, categories] = await Promise.all([
-      getWorkspaceDocuments(input),
-      getWorkspaceCategories(),
-    ]);
-  } catch (error) {
-    if (!(error instanceof WorkspaceValidationError)) throw error;
-  }
-  if (!result) {
+  const parsed = archiveFiltersSchema.safeParse(await searchParams);
+  if (!parsed.success)
     return (
-      <div>
-        <PageHeader
-          title="Dokumen saya"
-          description="Lihat pengajuan dan status pemeriksaan dokumen milik Anda."
+      <section className="panel">
+        <ErrorState
+          title="Filter arsip tidak valid"
+          description="Buka Dokumen terdahulu kembali untuk mengatur ulang filter."
         />
-        <section className="panel">
-          <ErrorState
-            title="Filter dokumen tidak valid"
-            description="Periksa kata pencarian, status, rentang tanggal, atau kembali ke awal daftar."
-          >
-            <Button asChild variant="secondary">
-              <Link href="/documents">Bersihkan filter</Link>
-            </Button>
-          </ErrorState>
-        </section>
-      </div>
+      </section>
     );
+  const filters = parsed.data;
+  let owned: Awaited<ReturnType<typeof getSigningDocuments>> | undefined;
+  let requests: Awaited<ReturnType<typeof getSigningRequests>> | undefined;
+  try {
+    if (filters.scope === "owned")
+      owned = await getSigningDocuments({
+        q: filters.q,
+        cursor: filters.cursor,
+      });
+    else
+      requests = await getSigningRequests({
+        scope: filters.scope,
+        status: filters.status,
+        cursor: filters.cursor,
+      });
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    return <SigningUnavailable title="Dokumen terdahulu" />;
   }
-  const filters: DocumentFilters = {
-    ...(typeof input.q === "string" && input.q.trim()
-      ? { q: input.q.trim() }
-      : {}),
-    ...(typeof input.status === "string" && input.status
-      ? { status: input.status as DocumentFilters["status"] }
-      : {}),
-    ...(typeof input.categoryId === "string" && input.categoryId
-      ? { categoryId: input.categoryId }
-      : {}),
-    ...(typeof input.from === "string" && input.from
-      ? { from: input.from }
-      : {}),
-    ...(typeof input.to === "string" && input.to ? { to: input.to } : {}),
-    ...(typeof input.cursor === "string" && input.cursor
-      ? { cursor: input.cursor }
-      : {}),
-    limit: result.limit,
-  };
   return (
-    <DocumentsWorkspace
-      result={result}
-      categories={categories}
-      filters={filters}
-    />
+    <ArchiveDocumentList filters={filters} owned={owned} requests={requests} />
   );
 }

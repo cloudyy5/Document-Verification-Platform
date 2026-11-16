@@ -38,6 +38,7 @@ import * as result from "@/app/api/v2/signing-receipts/[receiptId]/file/route";
 import * as render from "@/app/api/v2/signing-receipts/[receiptId]/render/route";
 import * as lookup from "@/app/api/v2/recipients/lookup/route";
 import { GET as userCode } from "@/app/api/v2/me/user-code/route";
+import { GET as archive } from "@/app/api/v2/archive/summary/route";
 
 const id = "10000000-0000-4000-8000-000000000001";
 const documentContext = { params: Promise.resolve({ documentId: id }) };
@@ -49,6 +50,7 @@ const get = () => new Request("http://127.0.0.1:3000/private");
 const post = () =>
   new Request("http://127.0.0.1:3000/private", { method: "POST" });
 const endpoints = [
+  { name: "own archive summary", run: () => archive() },
   { name: "archive dashboard", run: () => dashboard() },
   { name: "categories", run: () => categories() },
   { name: "archive list", run: () => legacyDocuments.GET(get()) },

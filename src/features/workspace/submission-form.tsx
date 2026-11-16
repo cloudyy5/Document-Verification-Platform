@@ -371,7 +371,7 @@ export function SubmissionForm({
                     </Link>
                   )}
                   <Link
-                    href="/documents"
+                    href="/documents/legacy"
                     className="inline-flex min-h-11 items-center text-xs font-medium text-primary"
                   >
                     Lihat daftar dokumen

@@ -71,6 +71,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/verify",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
         source: "/auth/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-store" },

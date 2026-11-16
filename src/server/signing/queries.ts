@@ -114,6 +114,19 @@ const pageSchema = z.strictObject({
 });
 const requestsPageSchema = pageSchema.extend({
   scope: z.enum(["received", "sent"]),
+  status: z
+    .enum([
+      "pending",
+      "expired",
+      "cancelled",
+      "rejected",
+      "consented",
+      "completed",
+    ])
+    .optional(),
+});
+const documentsPageSchema = pageSchema.extend({
+  q: z.string().trim().max(200).optional(),
 });
 const cursorSchema = z.strictObject({
   at: timestamp,
@@ -135,11 +148,12 @@ function encodeCursor(at: string, id: string): string {
   return Buffer.from(JSON.stringify({ at, id })).toString("base64url");
 }
 function parsePage(input: unknown) {
-  const parsed = pageSchema.safeParse(input);
+  const parsed = documentsPageSchema.safeParse(input);
   if (!parsed.success) throw invalidInput();
   return {
     limit: parsed.data.limit ?? 20,
     after: decodeCursor(parsed.data.cursor),
+    q: parsed.data.q,
   };
 }
 function parseRequestsPage(input: unknown) {
@@ -147,6 +161,7 @@ function parseRequestsPage(input: unknown) {
   if (!parsed.success) throw invalidInput();
   return {
     scope: parsed.data.scope,
+    status: parsed.data.status,
     limit: parsed.data.limit ?? 20,
     after: decodeCursor(parsed.data.cursor),
   };
@@ -280,7 +295,7 @@ export async function getSigningDocuments(
 ): Promise<SigningPage<SigningDocument>> {
   return withSigning(async (context) => {
     const { client, session } = context;
-    const { limit, after } = parsePage(input);
+    const { limit, after, q } = parsePage(input);
     let query = client
       .from("signing_document_versions")
       .select(versionFields)
@@ -289,6 +304,7 @@ export async function getSigningDocuments(
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(limit + 1);
+    if (q) query = query.ilike("title", `%${q.replace(/[\\%_]/g, "\\$&")}%`);
     if (after)
       query = query.or(
         `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
@@ -382,10 +398,11 @@ export async function getSigningRequests(input: {
   scope: "received" | "sent";
   cursor?: string;
   limit?: number | string;
+  status?: SigningRequestStatus;
 }): Promise<SigningPage<SigningRequest>> {
   return withSigning(async (context) => {
     const { client, session } = context;
-    const { scope, limit, after } = parseRequestsPage(input);
+    const { scope, status, limit, after } = parseRequestsPage(input);
     let query = client
       .from("signing_requests")
       .select(requestFields)
@@ -393,6 +410,12 @@ export async function getSigningRequests(input: {
       .order("sent_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(limit + 1);
+    const asOf = new Date().toISOString();
+    if (status === "expired")
+      query = query.eq("status", "pending").lte("expires_at", asOf);
+    else if (status === "pending")
+      query = query.eq("status", "pending").gt("expires_at", asOf);
+    else if (status) query = query.eq("status", status);
     if (after)
       query = query.or(
         `sent_at.lt.${after.at},and(sent_at.eq.${after.at},id.lt.${after.id})`,
