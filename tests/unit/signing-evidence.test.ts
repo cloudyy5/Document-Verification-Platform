@@ -87,6 +87,74 @@ beforeEach(() => {
   m.client.mockResolvedValue({ from: m.from });
 });
 describe("R3 evidence reads use participant RLS only (provider mocked)", () => {
+  it("reads one locked QR on page five of a five-page result", async () => {
+    m.replies.signing_receipts = [
+      {
+        ...receipt(),
+        layout_version: "selected-pages-draggable-web-evidence-v3",
+      },
+    ];
+    m.replies.signing_artifacts = [
+      { ...(m.replies.signing_artifacts[0] as object), page_count: 5 },
+    ];
+    m.replies.signing_receipt_layouts = [
+      {
+        source_page_count: 5,
+        placement_plan: [
+          {
+            page: 5,
+            x: 0.1,
+            y: 0.2,
+            widthPt: 600,
+            heightPt: 800,
+            rotation: 0,
+            userUnit: 1,
+          },
+        ],
+      },
+    ];
+    const value = await getSigningEvidence(id);
+    expect(value?.sourcePageCount).toBe(5);
+    expect(value?.placements).toHaveLength(1);
+    expect(value?.placements?.[0]?.page).toBe(5);
+    expect(value?.artifact.pageCount).toBe(5);
+  });
+  it.each([1, 6, null])(
+    "rejects result page count %j differing from the full selected-layout source",
+    async (pageCount) => {
+      m.replies.signing_receipts = [
+        {
+          ...receipt(),
+          layout_version: "selected-pages-draggable-web-evidence-v3",
+        },
+      ];
+      m.replies.signing_artifacts = [
+        {
+          ...(m.replies.signing_artifacts[0] as object),
+          page_count: pageCount,
+        },
+      ];
+      m.replies.signing_receipt_layouts = [
+        {
+          source_page_count: 5,
+          placement_plan: [
+            {
+              page: 5,
+              x: 0.1,
+              y: 0.2,
+              widthPt: 600,
+              heightPt: 800,
+              rotation: 0,
+              userUnit: 1,
+            },
+          ],
+        },
+      ];
+      await expect(getSigningEvidence(id)).rejects.toMatchObject({
+        status: 503,
+      });
+    },
+  );
   it("reads a new one-page result with its participant-scoped locked positions", async () => {
     m.replies.signing_receipts = [
       { ...receipt(), layout_version: "per-page-draggable-web-evidence-v2" },

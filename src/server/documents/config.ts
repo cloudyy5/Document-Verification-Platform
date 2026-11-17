@@ -1,24 +1,20 @@
 import "server-only";
 import { getAppOrigin } from "@/lib/auth/config";
 import { ApiError } from "@/server/errors";
+import { SUBMISSION_POLICY_VERSION } from "@/lib/documents/policy";
 
-export const DEVELOPMENT_POLICY_VERSION = "development-2026-11-04";
 export function getSubmissionConfiguration() {
   const origin = new URL(getAppOrigin());
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname);
-  // Remote synthetic testing is opt-in for one exact HTTPS origin at runtime.
-  // This does not activate the unapproved production document policy.
-  const remoteDevelopment =
-    origin.protocol === "https:" &&
-    process.env.DOCUMENT_DEVELOPMENT_ORIGIN === origin.origin;
-  const development =
-    (local || remoteDevelopment) &&
-    (process.env.DOCUMENT_ENVIRONMENT ?? "development") === "development";
+  const environment =
+    process.env.DOCUMENT_ENVIRONMENT ?? (local ? "development" : "production");
   const maxBytes = Number(
     process.env.DOCUMENT_MAX_FILE_BYTES ?? 10 * 1024 * 1024,
   );
   if (
-    !development ||
+    !["development", "production"].includes(environment) ||
+    (!local &&
+      (environment !== "production" || origin.protocol !== "https:")) ||
     !Number.isSafeInteger(maxBytes) ||
     maxBytes < 1 ||
     maxBytes > 10 * 1024 * 1024
@@ -30,7 +26,7 @@ export function getSubmissionConfiguration() {
     );
   return {
     maxBytes,
-    policyVersion: DEVELOPMENT_POLICY_VERSION,
-    environment: "development" as const,
+    policyVersion: SUBMISSION_POLICY_VERSION,
+    environment: environment as "development" | "production",
   };
 }

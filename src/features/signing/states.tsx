@@ -16,7 +16,7 @@ export function SigningUnavailable({
       <section className="panel">
         <ErrorState
           title="Layanan belum dapat digunakan"
-          description="Data persetujuan internal belum dapat dimuat. Coba kembali setelah layanan development siap."
+          description="Data persetujuan belum dapat dimuat. Silakan coba kembali dalam beberapa saat."
         >
           <Button asChild variant="secondary">
             <Link href="/signing/documents">Kembali ke dokumen</Link>
@@ -35,14 +35,14 @@ export function SigningLoading() {
   );
 }
 
-export function InternalPrototypeNotice() {
+export function SigningNotice() {
   return (
     <div className="flex gap-3 rounded-lg border border-border bg-muted/50 p-4 text-xs leading-6 text-muted-foreground">
       <Info className="mt-1 size-4 shrink-0 text-info" aria-hidden="true" />
       <p>
-        Prototipe persetujuan internal untuk dokumen sintetis. Catatan dan QR
-        merupakan bukti internal platform. Prototipe ini bukan layanan TTE
-        tersertifikasi.
+        PDF hanya dapat dibuka oleh pihak yang berhak. QR menampilkan metadata
+        persetujuan tanpa login. Catatan persetujuan ini bukan sertifikat tanda
+        tangan elektronik.
       </p>
     </div>
   );

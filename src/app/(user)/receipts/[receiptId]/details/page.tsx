@@ -4,15 +4,20 @@ import { requireUserWorkspace } from "@/lib/auth/session";
 import { getSigningEvidence } from "@/server/signing/evidence";
 import { SigningEvidenceView } from "@/features/signing/evidence-view";
 import { SigningUnavailable } from "@/features/signing/states";
+import {
+  SIGNING_RECEIPT_ID_PATTERN,
+  signingPrivateReceiptHref,
+} from "@/lib/signing/receipt-link";
 import { ApiError } from "@/server/errors";
 export const metadata: Metadata = { title: "Bukti persetujuan privat" };
-export default async function ReceiptPage({
+export default async function ReceiptDetailsPage({
   params,
 }: {
   params: Promise<{ receiptId: string }>;
 }) {
   const { receiptId } = await params;
-  await requireUserWorkspace(`/receipts/${receiptId}`);
+  if (!SIGNING_RECEIPT_ID_PATTERN.test(receiptId)) notFound();
+  await requireUserWorkspace(signingPrivateReceiptHref(receiptId));
   let evidence: Awaited<ReturnType<typeof getSigningEvidence>>;
   try {
     evidence = await getSigningEvidence(receiptId);

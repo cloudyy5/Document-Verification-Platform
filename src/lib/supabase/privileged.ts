@@ -7,8 +7,9 @@ import { getServerEnv } from "@/lib/env/server";
 import type { Database } from "@/types/database";
 
 /**
- * Bypasses RLS. Future callers must first verify the session, role, and owner
- * on the server. This factory is deliberately unused by the Phase 0 shell.
+ * Bypasses RLS. Private operations verify session, role and participant scope.
+ * The S-19 public metadata DAL is an explicit exception: it invokes only the
+ * service-only limiter and four-field projection RPC, never private table reads.
  */
 export function createPrivilegedSupabaseClient(options?: {
   timeoutMs: number;

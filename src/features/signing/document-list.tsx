@@ -144,7 +144,7 @@ export function SigningDocumentsList({
             description={
               hasCursor
                 ? "Tidak ada dokumen pada halaman lanjutan ini. Kembali ke awal untuk melihat dokumen terbaru."
-                : "Mulai dengan satu PDF sintetis. Setelah draft tersimpan, Anda dapat memilih penerima dan mengirim permintaan."
+                : "Mulai dengan mengunggah PDF. Setelah draft tersimpan, pilih penerima dan kirim permintaan persetujuan."
             }
             icon={FileText}
           >

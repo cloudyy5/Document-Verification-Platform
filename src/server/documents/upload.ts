@@ -14,6 +14,7 @@ import type { Database } from "@/types/database";
 import { getSubmissionConfiguration } from "./config";
 import { readLimitedFormData } from "./multipart";
 import { validatePdf } from "./pdf";
+import { assertPdfSafeForStorage } from "./malware";
 import { acquireUploadSlot } from "./upload-slot";
 
 type Submission = Database["public"]["Tables"]["document_submissions"]["Row"];
@@ -247,6 +248,7 @@ export async function uploadSubmission(
         "Dokumen hanya dapat direvisi setelah permintaan revisi. Pengajuan setelah ditolak dibuat sebagai dokumen baru.",
       );
     const path = `${session.user.id}/${documentId}/${submissionId}.pdf`;
+    await assertPdfSafeForStorage(inspected.bytes);
     const stored = await privileged.storage
       .from(bucket)
       .upload(path, inspected.bytes, {

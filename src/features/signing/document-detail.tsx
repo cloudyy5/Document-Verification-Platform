@@ -8,7 +8,7 @@ import { formatTimestamp } from "@/features/workspace/format";
 import { DocumentSnapshot } from "./document-snapshot";
 import { SigningStatusBadge } from "./request-status";
 import { SendSigningRequestForm } from "./send-request-form";
-import { FileAccessEnded, InternalPrototypeNotice } from "./states";
+import { FileAccessEnded, SigningNotice } from "./states";
 import type { SigningDocument } from "./types";
 import { useRequestLifecycle } from "./use-request-lifecycle";
 
@@ -76,7 +76,7 @@ export function SigningDocumentDetail({
               ditimpa saat proses berlangsung.
             </p>
           </section>
-          <InternalPrototypeNotice />
+          <SigningNotice />
         </aside>
       </div>
     </div>

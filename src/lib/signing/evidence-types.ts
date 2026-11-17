@@ -22,6 +22,7 @@ export type SigningEvidence = {
   policyVersion: string;
   layoutVersion: string;
   placements?: QrPlan;
+  sourcePageCount?: number;
   artifact: {
     state: "pending" | "processing" | "failed" | "ready";
     sha256: string | null;

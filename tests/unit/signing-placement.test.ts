@@ -2,16 +2,100 @@ import { createHash } from "node:crypto";
 import { PDFDocument, PDFName, PDFString, degrees } from "pdf-lib";
 import { describe, it, expect, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-import { inspectSigningPlacement } from "@/server/signing/layout";
+import {
+  inspectSigningPlacement,
+  inspectSelectedSigningPlacement,
+} from "@/server/signing/layout";
 import {
   qrPositionsSchema,
   qrPlanSchema,
   positionFits,
   clampPosition,
+  selectedQrPositionsSchema,
+  selectedQrManifestSchema,
 } from "@/lib/signing/placement";
 const hash = (value: Uint8Array) =>
   createHash("sha256").update(value).digest("hex");
 describe("recipient QR positions and actual geometry worker", () => {
+  it("allows selected pages while refusing zero QR, duplicates, unordered pages and injected geometry", () => {
+    expect(
+      selectedQrPositionsSchema.safeParse([{ page: 5, x: 0.1, y: 0.2 }])
+        .success,
+    ).toBe(true);
+    for (const value of [
+      [],
+      [
+        { page: 1, x: 0, y: 0 },
+        { page: 1, x: 0.2, y: 0.2 },
+      ],
+      [
+        { page: 2, x: 0, y: 0 },
+        { page: 1, x: 0, y: 0 },
+      ],
+      [{ page: 1, x: 0, y: 0, widthPt: 600 }],
+    ])
+      expect(selectedQrPositionsSchema.safeParse(value).success).toBe(false);
+    expect(
+      selectedQrManifestSchema.safeParse({
+        sourcePageCount: 2,
+        placements: [
+          {
+            page: 3,
+            x: 0,
+            y: 0,
+            widthPt: 600,
+            heightPt: 800,
+            rotation: 0,
+            userUnit: 1,
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+  it("derives all five source pages with only one QR on page five", async () => {
+    const pdf = await PDFDocument.create();
+    for (let i = 0; i < 5; i++) pdf.addPage([400 + i * 20, 600]);
+    const bytes = await pdf.save();
+    const value = await inspectSelectedSigningPlacement(bytes, hash(bytes), [
+      { page: 5, x: 0.1, y: 0.2 },
+    ]);
+    expect(value.sourcePageCount).toBe(5);
+    expect(value.placements).toEqual([
+      {
+        page: 5,
+        x: 0.1,
+        y: 0.2,
+        widthPt: 480,
+        heightPt: 600,
+        rotation: 0,
+        userUnit: 1,
+      },
+    ]);
+  });
+  it.each(
+    [
+      [],
+      [{ page: 6, x: 0, y: 0 }],
+      [
+        { page: 2, x: 0, y: 0 },
+        { page: 2, x: 0.2, y: 0.2 },
+      ],
+      [
+        { page: 3, x: 0, y: 0 },
+        { page: 1, x: 0, y: 0 },
+      ],
+    ].map((positions) => ({ positions })),
+  )(
+    "rejects an invalid selected-page plan in the actual worker (%j)",
+    async ({ positions }) => {
+      const pdf = await PDFDocument.create();
+      for (let i = 0; i < 5; i++) pdf.addPage([400, 600]);
+      const bytes = await pdf.save();
+      await expect(
+        inspectSelectedSigningPlacement(bytes, hash(bytes), positions),
+      ).rejects.toMatchObject({ code: "INVALID_QR_PLACEMENT" });
+    },
+  );
   it("requires exactly ordered page positions without injected geometry or authority", () => {
     expect(
       qrPositionsSchema.safeParse([{ page: 2, x: 0.1, y: 0.1 }]).success,

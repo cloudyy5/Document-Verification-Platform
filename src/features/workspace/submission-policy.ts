@@ -1,42 +1,45 @@
-/** Approved for synthetic development tests; this is not production legal policy. */
-export const developmentConsentText =
-  "Saya berhak mengajukan dokumen ini dan menyetujui penyimpanan PDF serta metadata untuk pemeriksaan administratif oleh reviewer yang berwenang. Pemeriksaan administratif tidak membuktikan keaslian penerbit, kebenaran isi, atau keabsahan hukum dokumen.";
-
-export const developmentPolicySections = [
+import { SUBMISSION_CONSENT_TEXT } from "@/lib/documents/policy";
+export const submissionConsentText = SUBMISSION_CONSENT_TEXT;
+export const submissionPolicySections = [
   {
-    title: "Cakupan development",
+    title: "Penggunaan layanan",
     paragraphs: [
-      "Kebijakan ini disetujui untuk uji development menggunakan dokumen sintetis. Kebijakan produksi masih memerlukan tinjauan hukum dan privasi sebelum aplikasi dirilis untuk penggunaan publik.",
-      "Pengajuan development menerima PDF sampai batas yang ditampilkan pada formulir, dengan maksimum 10 MiB. PDF terenkripsi atau dilindungi password tidak diterima.",
+      "Platform menyediakan penyimpanan PDF, permintaan persetujuan kepada satu pengguna lain, serta catatan persetujuan melalui akun yang terautentikasi. Pengguna harus memiliki hak untuk mengunggah dan membagikan dokumen.",
+      "Batas sumber PDF paling tinggi 10 MiB dan dapat lebih rendah sesuai batas pada formulir. PDF terenkripsi, dilindungi password, mengandung aksi otomatis terlarang atau lampiran tertanam tidak diterima.",
     ],
   },
   {
-    title: "Hak mengajukan dan akses privat",
+    title: "Akses PDF dan metadata QR",
     paragraphs: [
-      "Pengguna menyatakan berhak mengajukan file dan menyetujui penyimpanan PDF serta metadata untuk pemeriksaan administratif. Gunakan dokumen sintetis tanpa data pribadi nyata selama uji development.",
-      "PDF disimpan privat. Pengguna hanya dapat mengakses dokumen miliknya sendiri. Reviewer yang berwenang memperoleh akses sesuai izin pemeriksaan; identitas kode dan QR tidak menggantikan login atau pemeriksaan kepemilikan.",
+      "PDF disimpan pada penyimpanan privat. Pemilik dan penerima yang sah dapat membaca versi sesuai status permintaan; admin monitoring tidak otomatis berhak membaca PDF pengguna.",
+      "Setelah persetujuan tercatat, siapa pun yang mempunyai QR atau tautan bukti dapat melihat status, waktu persetujuan, nama penandatangan, dan judul dokumen tanpa login. Email, kode akun, alasan penolakan dan PDF tidak dibuka oleh QR.",
     ],
   },
   {
-    title: "Validasi dan pemeriksaan administratif",
+    title: "Pemeriksaan file dan batas bukti",
     paragraphs: [
-      "Server memeriksa ukuran, tipe, signature, dan struktur PDF, lalu menghitung SHA-256 dari byte file asli. File yang gagal validasi tidak masuk antrean pemeriksaan.",
-      "Reviewer memeriksa empat aspek: kelengkapan, keterbacaan, kesesuaian kategori, dan kelayakan pendaftaran. Persetujuan hanya menyatakan dokumen lolos pemeriksaan administratif dan diterima untuk didaftarkan.",
-      "Pemeriksaan administratif maupun hash yang cocok tidak membuktikan keaslian penerbit, kebenaran isi, atau keabsahan hukum dokumen.",
+      "Sebelum menyimpan unggahan baru pada layanan publik, server memvalidasi PDF dan mengirim byte file ke pemindai malware pada jaringan internal layanan. File tidak disimpan apabila pemindai menemukan ancaman atau pemeriksaan tidak dapat diselesaikan.",
+      "Pemeriksaan keamanan, QR dan hash tidak menjamin kebenaran isi atau keaslian penerbit. Catatan platform bukan sertifikat tanda tangan elektronik. Pencocokan file dengan catatan memerlukan pemeriksaan hash file yang tepat.",
     ],
   },
   {
-    title: "Versi dan catatan pengajuan",
+    title: "Penyimpanan dan penghapusan",
     paragraphs: [
-      "Pengajuan baru berstatus menunggu review. Kode verifikasi dan QR aktif hanya diterbitkan setelah persetujuan; mesin kode, QR, dan pencocokan file belum diaktifkan pada tahap User Workspace.",
-      "Perbaikan untuk pengajuan yang meminta revisi membuat versi baru pada dokumen yang sama. File, metadata, dan keputusan sebelumnya dipertahankan sebagai riwayat dan tidak ditimpa. Pengajuan yang ditolak harus diajukan sebagai dokumen baru jika pengguna ingin mencoba kembali.",
-      "Server menyimpan persetujuan aktif pengguna, versi kebijakan, dan timestamp persetujuan dari database.",
+      "Dokumen, versi dan riwayat persetujuan disimpan tanpa batas hapus otomatis. Permintaan penghapusan ditangani melalui prosedur pengelola; aplikasi tidak menyediakan tombol hapus bukti atau penghapusan otomatis.",
+      "Pengajuan dan keputusan yang sudah tercatat tidak ditimpa. Prosedur penghapusan harus memperhitungkan hak peserta, riwayat keputusan dan salinan cadangan. Mengirim permintaan penghapusan tidak langsung menghapus data.",
     ],
   },
   {
-    title: "Batas penggunaan sebelum rilis publik",
+    title: "Undangan dan keputusan",
     paragraphs: [
-      "Pemilihan scanner malware, kebijakan konten lengkap, serta aturan retensi dan penghapusan masih harus ditetapkan sebelum rilis publik. Dokumen ini tidak menetapkan masa retensi atau kewenangan admin tambahan.",
+      "Undangan berlaku tujuh hari. Pemilik dapat membatalkan sebelum penerima memutuskan. Penerima dapat membaca PDF selama undangan aktif dan setelah persetujuan; akses penerima berakhir bila ditolak, dibatalkan atau kedaluwarsa.",
+      "Persetujuan mengikat versi serta hash PDF yang ditampilkan. Jumlah dan posisi QR dikunci saat persetujuan. Alasan penolakan wajib dan hanya dapat dibaca peserta yang berhak.",
+    ],
+  },
+  {
+    title: "Arsip pemeriksaan terdahulu",
+    paragraphs: [
+      "Pengajuan pemeriksaan administratif terdahulu disimpan sebagai arsip terpisah dari permintaan persetujuan antar pengguna. Status administratif tidak diubah menjadi tanda tangan dan tidak menjamin keaslian penerbit atau keabsahan hukum dokumen.",
     ],
   },
 ] as const;

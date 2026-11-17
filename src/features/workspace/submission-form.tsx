@@ -21,7 +21,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 import { DocumentStatusBadge } from "./document-status";
 import { formatFileSize, formatTimestamp } from "./format";
-import { developmentConsentText } from "./submission-policy";
+import { submissionConsentText } from "./submission-policy";
 import type { Category, DocumentDetail, SubmissionVersion } from "./types";
 
 type Field =
@@ -680,7 +680,7 @@ export function SubmissionForm({
                   }}
                   className="mt-1 size-4 shrink-0 accent-primary"
                 />
-                <span>{developmentConsentText}</span>
+                <span>{submissionConsentText}</span>
               </label>
               <Link
                 href="/policies/submission"
@@ -688,12 +688,12 @@ export function SubmissionForm({
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex min-h-11 items-center text-xs font-medium text-primary"
               >
-                Baca kebijakan pengajuan development{" "}
+                Baca kebijakan pengajuan{" "}
                 <ArrowRight size={15} className="ml-2" aria-hidden="true" />
               </Link>
               <p className="mt-1 text-xs leading-5 text-subtle">
-                Versi {configuration.policyVersion}. Pengujian development
-                menggunakan dokumen sintetis.
+                Dokumen dan riwayat disimpan tanpa penghapusan otomatis.
+                Penghapusan ditangani melalui prosedur pengelola.
               </p>
               {errors.consent && (
                 <p
@@ -778,7 +778,7 @@ export function SubmissionForm({
                 "Format PDF (.pdf) yang dapat diproses",
                 `Maksimal ${formatFileSize(configuration.maxBytes)}`,
                 "Tanpa enkripsi atau password",
-                "Gunakan dokumen sintetis untuk development",
+                "Dokumen yang berhak Anda ajukan",
               ].map((text) => (
                 <li key={text} className="flex items-start gap-2">
                   <Check

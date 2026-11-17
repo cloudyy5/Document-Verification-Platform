@@ -13,6 +13,7 @@ import {
   SIGNING_SHARING_POLICY_VERSION,
   SIGNING_USER_CODE_PATTERN,
 } from "@/lib/signing/policy";
+import { SIGNING_PUBLIC_METADATA_NOTICE } from "@/lib/signing/public-metadata";
 import {
   isUuid,
   requestReceipt,
@@ -279,6 +280,9 @@ export function SendSigningRequestForm({
                 />
                 <span>{SIGNING_SHARING_CONSENT_TEXT}</span>
               </label>
+              <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                {SIGNING_PUBLIC_METADATA_NOTICE}
+              </p>
             </div>
           )}
           <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">

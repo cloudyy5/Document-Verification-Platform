@@ -6,8 +6,11 @@ import { formatTimestamp, formatFileSize } from "@/features/workspace/format";
 import { getAppOrigin } from "@/lib/auth/config";
 import { createSigningEvidenceQr } from "@/server/signing/evidence-qr";
 import type { SigningEvidence } from "@/server/signing/evidence";
-import { SIGNING_ACTION_CONSENT_TEXT } from "@/lib/signing/policy";
-import { QR_PLACEMENT_VERSION } from "@/lib/signing/placement";
+import { signingActionConsentText } from "@/lib/signing/policy";
+import {
+  QR_PLACEMENT_VERSION,
+  SELECTED_QR_PLACEMENT_VERSION,
+} from "@/lib/signing/placement";
 import { SigningArtifactControl } from "./artifact-control";
 import { signingFileHref } from "./api";
 
@@ -69,7 +72,7 @@ export function SigningEvidenceView({
               ))}
             </dl>
             <blockquote className="mt-6 border-l-2 border-primary pl-4 text-xs leading-6 text-muted-foreground">
-              {SIGNING_ACTION_CONSENT_TEXT}
+              {signingActionConsentText(evidence.policyVersion)}
             </blockquote>
           </section>
           <section className="panel space-y-5 p-5 sm:p-6">
@@ -82,9 +85,11 @@ export function SigningEvidenceView({
               <p className="text-xs leading-6 text-subtle">
                 {evidence.artifact.pageCount} halaman ·{" "}
                 {formatFileSize(evidence.artifact.bytes!)}.{" "}
-                {evidence.layoutVersion === QR_PLACEMENT_VERSION
-                  ? "QR berada pada posisi yang dipilih penerima di setiap halaman. Bukti persetujuan tersedia pada halaman web ini."
-                  : "QR mengikuti penempatan yang telah disetujui pada dokumen ini, termasuk halaman bukti tambahan."}
+                {evidence.layoutVersion === SELECTED_QR_PLACEMENT_VERSION
+                  ? `${evidence.placements?.length ?? 0} QR berada pada halaman pilihan penerima dari ${evidence.sourcePageCount ?? "—"} halaman sumber. Seluruh halaman tetap disertakan dalam PDF hasil. Bukti persetujuan tersedia pada halaman web ini.`
+                  : evidence.layoutVersion === QR_PLACEMENT_VERSION
+                    ? "QR berada pada posisi yang dipilih penerima di setiap halaman. Bukti persetujuan tersedia pada halaman web ini."
+                    : "QR mengikuti penempatan yang telah disetujui pada dokumen ini, termasuk halaman bukti tambahan."}
               </p>
             )}
             <div className="border-t border-border pt-5">
@@ -120,10 +125,10 @@ export function SigningEvidenceView({
         </div>
         <aside className="space-y-5">
           <section className="panel p-5">
-            <h2 className="section-heading">QR bukti privat</h2>
+            <h2 className="section-heading">QR metadata persetujuan</h2>
             <svg
               role="img"
-              aria-label="QR tautan bukti persetujuan privat"
+              aria-label="QR metadata persetujuan tanpa login"
               viewBox={`0 0 ${qr.size + 8} ${qr.size + 8}`}
               shapeRendering="crispEdges"
               className="mx-auto my-5 w-full max-w-56 rounded bg-white p-2"
@@ -132,8 +137,8 @@ export function SigningEvidenceView({
               <path d={path} fill="black" />
             </svg>
             <p className="text-xs leading-6 text-muted-foreground">
-              Pemindaian membuka halaman ini. Login dan hak sebagai peserta
-              tetap diperlukan.
+              Pemindaian membuka status, waktu persetujuan, nama penandatangan,
+              dan judul dokumen tanpa login. PDF dan rincian lain tetap privat.
             </p>
             <p className="mt-4 text-xs text-subtle">ID bukti</p>
             <code className="mt-2 block break-all text-xs leading-6">

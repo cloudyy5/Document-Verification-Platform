@@ -65,10 +65,11 @@ export default function QrPlacementEditor({
       !error &&
         pages.length > 0 &&
         positions.length === pages.length &&
+        positions.some(Boolean) &&
         positions.every(
-          (item, index) => item && positionFits(pages[index]!, item),
+          (item, index) => !item || positionFits(pages[index]!, item),
         )
-        ? (positions as QrPosition[])
+        ? positions.filter((item): item is QrPosition => item !== null)
         : null,
     );
   }, [positions, pages, error]);
@@ -327,18 +328,30 @@ export default function QrPlacementEditor({
         <div className="flex items-center gap-3">
           <ScanLine className="size-5 text-primary" aria-hidden="true" />
           <h2 id="qr-placement-title" className="section-heading">
-            Atur posisi QR
+            Atur jumlah dan posisi QR
           </h2>
         </div>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Letakkan penanda pada area kosong di setiap halaman. Geser dengan
-          mouse atau sentuhan; gunakan tombol panah untuk penyesuaian.
+          Pilih halaman yang memerlukan QR, lalu letakkan pada area kosong.
+          Minimal satu QR per dokumen, maksimal satu QR per halaman. Geser
+          dengan mouse atau sentuhan; gunakan tombol panah untuk penyesuaian.
         </p>
         <p role="status" className="mt-3 text-xs font-medium text-primary">
           {pages.length
-            ? `${ready} dari ${pages.length} halaman sudah diatur`
+            ? `${ready} QR dipilih pada dokumen ${pages.length} halaman`
             : "Menyiapkan pratinjau PDF…"}
         </p>
+        {ready > 0 && (
+          <p className="mt-2 text-xs leading-5 text-subtle">
+            Halaman ber-QR:{" "}
+            {positions
+              .filter((item): item is QrPosition => item !== null)
+              .slice(0, 12)
+              .map((item) => item.page)
+              .join(", ")}
+            {ready > 12 ? ", …" : ""}.
+          </p>
+        )}
       </div>
       {error ? (
         <p role="alert" className="p-5 text-sm leading-6 text-danger">
@@ -489,7 +502,7 @@ export default function QrPlacementEditor({
                 onClick={() => update(null)}
               >
                 <Trash2 aria-hidden="true" />
-                Hapus posisi
+                Hapus QR halaman ini
               </Button>
               {pages.length > 1 && (
                 <Button
@@ -502,6 +515,12 @@ export default function QrPlacementEditor({
                 </Button>
               )}
             </div>
+            <p className="text-xs leading-6 text-subtle">
+              {position
+                ? `Halaman ${pageIndex + 1} menggunakan satu QR. `
+                : `Halaman ${pageIndex + 1} tanpa QR. `}
+              Halaman tanpa QR tetap disertakan dalam PDF hasil.
+            </p>
             <p className="text-xs leading-6 text-subtle">
               Penanda ini hanya menunjukkan posisi. QR diterbitkan setelah
               persetujuan tercatat; posisinya kemudian dikunci. Bukti

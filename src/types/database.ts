@@ -497,18 +497,21 @@ export type Database = {
           layout_version: string;
           placement_plan: Json;
           plan_sha256: string;
+          source_page_count: number | null;
         };
         Insert: {
           receipt_id: string;
           layout_version?: string;
           placement_plan: Json;
           plan_sha256: string;
+          source_page_count?: number | null;
         };
         Update: {
           receipt_id?: string;
           layout_version?: string;
           placement_plan?: Json;
           plan_sha256?: string;
+          source_page_count?: number | null;
         };
         Relationships: [
           {
@@ -806,6 +809,22 @@ export type Database = {
         };
         Returns: Json;
       };
+      approve_signing_request_with_selected_pages: {
+        Args: {
+          p_actor_id: string | null;
+          p_request_id: string | null;
+          p_decision_id: string | null;
+          p_source_version_id: string | null;
+          p_source_sha256: string | null;
+          p_policy_version: string | null;
+          p_consent: boolean | null;
+          p_confirmed: boolean | null;
+          p_confirmation_digest: string | null;
+          p_placement_plan: Json | null;
+          p_source_page_count: number | null;
+        };
+        Returns: Json;
+      };
       cancel_signing_request: {
         Args: { p_actor_id: string | null; p_request_id: string | null };
         Returns: Json;
@@ -839,6 +858,10 @@ export type Database = {
         Returns: boolean;
       };
       consume_document_upload_limit: {
+        Args: { p_key_digest: string | null; p_global_digest: string | null };
+        Returns: boolean;
+      };
+      consume_public_signing_metadata_limit: {
         Args: { p_key_digest: string | null; p_global_digest: string | null };
         Returns: boolean;
       };
@@ -943,12 +966,20 @@ export type Database = {
         };
         Returns: boolean;
       };
+      get_document_service_policy: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
       get_operations_snapshot: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
       get_own_workspace_counts: {
         Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_signing_public_metadata: {
+        Args: { p_receipt_id: string | null };
         Returns: Json;
       };
       is_auth_recovery_grant_valid: {

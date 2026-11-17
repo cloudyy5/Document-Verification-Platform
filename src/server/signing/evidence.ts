@@ -4,11 +4,13 @@ import { apiSession } from "@/server/api";
 import { ApiError } from "@/server/errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SIGNING_RECEIPT_ID_PATTERN } from "@/lib/signing/receipt-link";
-import { SIGNING_ACTION_POLICY_VERSION } from "@/lib/signing/policy";
+import { SIGNING_ACTION_POLICY_VERSIONS } from "@/lib/signing/policy";
 import {
   QR_PLACEMENT_VERSION,
+  SELECTED_QR_PLACEMENT_VERSION,
   LEGACY_SIGNING_LAYOUT,
   qrPlanSchema,
+  selectedQrManifestSchema,
 } from "@/lib/signing/placement";
 import { getSigningConfiguration } from "./config";
 import { signingUnavailable } from "./errors";
@@ -30,7 +32,7 @@ const decisionRow = z.object({
   actor_id: z.uuid(),
   action: z.enum(["approve", "reject"]),
   reason: z.string().nullable(),
-  policy_version: z.literal(SIGNING_ACTION_POLICY_VERSION),
+  policy_version: z.enum(SIGNING_ACTION_POLICY_VERSIONS),
   consent: z.boolean(),
   authentication_method: z.literal("session_explicit_confirmation-v1"),
   decided_at: stamp,
@@ -47,8 +49,12 @@ const receiptRow = z.object({
   owner_name: z.string().min(1).max(120),
   document_title: z.string().min(1).max(200),
   source_sha256: hash,
-  policy_version: z.literal(SIGNING_ACTION_POLICY_VERSION),
-  layout_version: z.enum([LEGACY_SIGNING_LAYOUT, QR_PLACEMENT_VERSION]),
+  policy_version: z.enum(SIGNING_ACTION_POLICY_VERSIONS),
+  layout_version: z.enum([
+    LEGACY_SIGNING_LAYOUT,
+    QR_PLACEMENT_VERSION,
+    SELECTED_QR_PLACEMENT_VERSION,
+  ]),
   decided_at: stamp,
 });
 const artifactRow = z.object({
@@ -117,7 +123,23 @@ async function evidenceFor(
   if (result.error || !result.data) throw signingUnavailable();
   const artifact = artifactRow.parse(result.data);
   let placements;
-  if (row.layout_version === QR_PLACEMENT_VERSION) {
+  let sourcePageCount: number | undefined;
+  if (row.layout_version === SELECTED_QR_PLACEMENT_VERSION) {
+    const layout = await client
+      .from("signing_receipt_layouts")
+      .select("placement_plan,source_page_count")
+      .eq("receipt_id", row.id)
+      .maybeSingle();
+    if (layout.error || !layout.data) throw signingUnavailable();
+    const manifest = selectedQrManifestSchema.parse({
+      sourcePageCount: layout.data.source_page_count,
+      placements: layout.data.placement_plan,
+    });
+    placements = manifest.placements;
+    sourcePageCount = manifest.sourcePageCount;
+    if (artifact.state === "ready" && artifact.page_count !== sourcePageCount)
+      throw signingUnavailable();
+  } else if (row.layout_version === QR_PLACEMENT_VERSION) {
     const layout = await client
       .from("signing_receipt_layouts")
       .select("placement_plan")
@@ -156,6 +178,7 @@ async function evidenceFor(
     policyVersion: row.policy_version,
     layoutVersion: row.layout_version,
     ...(placements ? { placements } : {}),
+    ...(sourcePageCount ? { sourcePageCount } : {}),
     artifact: {
       state: artifact.state,
       sha256: artifact.artifact_sha256,

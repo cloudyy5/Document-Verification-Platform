@@ -8,6 +8,56 @@ const versionId = "10000000-0000-4000-8000-000000000002";
 const requestId = "10000000-0000-4000-8000-000000000003";
 const receiptId = "R".repeat(43);
 
+test("public policy uses current service wording and the approved operator contact", async ({
+  page,
+}) => {
+  await page.goto("/policies/submission");
+  await expect(
+    page.getByRole("heading", {
+      name: "Kebijakan dokumen dan privasi",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("KPILKOMITH", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "kp.ilkomith@gmail.com", exact: true }),
+  ).toHaveAttribute("href", "mailto:kp.ilkomith%40gmail.com");
+  expect(await page.locator("main").innerText()).not.toMatch(
+    /prototip|sintetis|development/i,
+  );
+  await expect(
+    page.getByRole("heading", {
+      name: "Penyimpanan dan penghapusan",
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("QR landing does not require login; invalid QR reveals no document metadata", async ({
+  page,
+}) => {
+  const response = await page.goto("/receipts/invalid-token");
+  expect(response?.status()).toBe(404);
+  await expect(page).toHaveURL(/\/receipts\/invalid-token$/);
+  await expect(
+    page.getByRole("heading", {
+      name: "Metadata tidak ditemukan",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.locator("input[type=password],iframe,object,embed"),
+  ).toHaveCount(0);
+  expect(response?.headers()["cache-control"]).toContain("no-store");
+  expect(response?.headers()["x-robots-tag"]).toContain("noindex");
+  expect(response?.headers()["referrer-policy"]).toBe("no-referrer");
+});
+
 test("halaman persetujuan internal meminta login dengan tujuan yang tepat", async ({
   page,
 }) => {
@@ -18,7 +68,7 @@ test("halaman persetujuan internal meminta login dengan tujuan yang tepat", asyn
     "/requests/incoming",
     "/requests/outgoing",
     `/requests/${requestId}`,
-    `/receipts/${receiptId}`,
+    `/receipts/${receiptId}/details`,
   ]) {
     await page.goto(path);
     await expect(page).toHaveURL(

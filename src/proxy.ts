@@ -36,6 +36,10 @@ export async function proxy(request: NextRequest) {
   const protectedRoute = isPrivatePath(pathname);
   let response = privateResponse(NextResponse.next({ request }));
 
+  // S-19: the exact QR landing page has its own four-field public DAL.
+  // Do not refresh/authenticate cookies here; nested details and all APIs stay private.
+  if (/^\/receipts\/[^/]+\/?$/.test(pathname)) return response;
+
   function deny(serviceUnavailable = false) {
     let denied: NextResponse;
     if (/^\/api\/v[12](?:\/|$)/.test(pathname)) {

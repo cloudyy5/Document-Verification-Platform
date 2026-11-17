@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { SIGNING_ACTION_POLICY_VERSION } from "./policy";
-import { QR_PLACEMENT_VERSION, qrPositionsSchema } from "./placement";
+import {
+  QR_PLACEMENT_VERSION,
+  SELECTED_QR_PLACEMENT_VERSION,
+  qrPositionsSchema,
+  selectedQrPositionsSchema,
+} from "./placement";
 
 const binding = {
   sourceVersionId: z.uuid(),
@@ -9,13 +14,23 @@ const binding = {
   confirmed: z.literal(true),
 };
 export const signingDecisionSchema = z.discriminatedUnion("action", [
-  z.strictObject({
-    ...binding,
-    action: z.literal("approve"),
-    consent: z.literal(true),
-    placementVersion: z.literal(QR_PLACEMENT_VERSION),
-    placements: qrPositionsSchema,
-  }),
+  z
+    .strictObject({
+      ...binding,
+      action: z.literal("approve"),
+      consent: z.literal(true),
+      placementVersion: z.enum([
+        QR_PLACEMENT_VERSION,
+        SELECTED_QR_PLACEMENT_VERSION,
+      ]),
+      placements: selectedQrPositionsSchema,
+    })
+    .refine(
+      (value) =>
+        value.placementVersion !== QR_PLACEMENT_VERSION ||
+        qrPositionsSchema.safeParse(value.placements).success,
+      "Layout lama memerlukan posisi pada setiap halaman.",
+    ),
   z.strictObject({
     ...binding,
     action: z.literal("reject"),

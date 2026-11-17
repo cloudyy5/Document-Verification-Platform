@@ -89,13 +89,22 @@ export function inspectPages(pdf) {
     return { page: index + 1, widthPt, heightPt, rotation, userUnit, blocked };
   });
 }
-export function placementPlan(pages, positions) {
-  if (!Array.isArray(positions) || positions.length !== pages.length)
+export function placementPlan(pages, positions, selectedPages = false) {
+  if (
+    !Array.isArray(positions) ||
+    !positions.length ||
+    positions.length > pages.length ||
+    (!selectedPages && positions.length !== pages.length)
+  )
     throw new Error("LAYOUT_PAGE_COUNT");
-  return pages.map((page, index) => {
-    const input = positions[index];
+  return positions.map((input, index) => {
+    const page = pages[input?.page - 1];
     if (
-      input?.page !== index + 1 ||
+      !Number.isInteger(input?.page) ||
+      !page ||
+      (selectedPages
+        ? index > 0 && input.page <= positions[index - 1].page
+        : input.page !== index + 1) ||
       !Number.isFinite(input.x) ||
       !Number.isFinite(input.y) ||
       input.x < 0 ||

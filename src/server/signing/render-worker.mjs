@@ -41,8 +41,18 @@ try {
   const originalPages = pdf.getPages();
   if (!originalPages.length || originalPages.length > 2000)
     throw new Error("RENDER_LIMIT");
+  const selectedPages =
+    evidence.layoutVersion === "selected-pages-draggable-web-evidence-v3";
   const movable =
+    selectedPages ||
     evidence.layoutVersion === "per-page-draggable-web-evidence-v2";
+  if (
+    !movable &&
+    evidence.layoutVersion !== "all-pages-bottom-left-and-evidence-v1"
+  )
+    throw new Error("RENDER_LIMIT");
+  if (selectedPages && evidence.sourcePageCount !== originalPages.length)
+    throw new Error("RENDER_LIMIT");
   pdf.registerFontkit(fontkit);
   const font = movable
     ? null
@@ -94,7 +104,7 @@ try {
   }
   if (movable) {
     const pages = inspectPages(pdf),
-      plan = placementPlan(pages, evidence.placements);
+      plan = placementPlan(pages, evidence.placements, selectedPages);
     for (const [index, item] of plan.entries()) {
       const supplied = evidence.placements[index];
       if (
@@ -103,7 +113,7 @@ try {
         )
       )
         throw new Error("RENDER_LIMIT");
-      const page = originalPages[index],
+      const page = originalPages[item.page - 1],
         crop = visiblePageBox(page);
       let matrix;
       if (item.rotation === 0) matrix = [1, 0, 0, 1, crop.x, crop.y];

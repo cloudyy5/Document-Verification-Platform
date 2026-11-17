@@ -201,7 +201,7 @@ test("private ID/link checks reject other origins and user codes without request
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Buka bukti privat" }),
-  ).toHaveAttribute("href", `/receipts/${receipt}`);
+  ).toHaveAttribute("href", `/receipts/${receipt}/details`);
 });
 test("QR image is decoded locally and only the private evidence GET is sent", async ({
   page,

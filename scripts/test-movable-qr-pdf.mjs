@@ -57,9 +57,12 @@ for (const scenario of [
   "rotated-four-pages",
   "single-source-page",
   "clipped-crop-page",
+  "selected-last-page",
+  "selected-nonconsecutive-pages",
 ]) {
+  const selectedPages = scenario.startsWith("selected-");
   const bytes =
-    scenario === "rotated-four-pages"
+    scenario === "rotated-four-pages" || selectedPages
       ? await original.save()
       : scenario === "clipped-crop-page"
         ? await clipped.save()
@@ -68,22 +71,35 @@ for (const scenario of [
           );
   const source = await PDFDocument.load(bytes),
     sha256 = createHash("sha256").update(bytes).digest("hex"),
-    positions = source.getPages().map((_, index) => ({
-      page: index + 1,
-      x: [0.05, 0.65, 0.1, 0.65][index] ?? 0.1,
-      y: [0.05, 0.1, 0.65, 0.65][index] ?? 0.1,
-    }));
+    positions = source
+      .getPages()
+      .map((_, index) => ({
+        page: index + 1,
+        x: [0.05, 0.65, 0.1, 0.65][index] ?? 0.1,
+        y: [0.05, 0.1, 0.65, 0.65][index] ?? 0.1,
+      }))
+      .filter(
+        (item) =>
+          !selectedPages ||
+          (scenario === "selected-last-page"
+            ? item.page === 4
+            : [2, 4].includes(item.page)),
+      );
   const inspected = await worker("layout-worker.mjs", {
       bytes,
       sha256,
       positions,
+      selectedPages,
     }),
     id = (scenario === "rotated-four-pages" ? "M" : "S").repeat(43),
     url = `http://127.0.0.1:3000/receipts/${id}`;
   const evidence = {
     id,
     sourceSha256: sha256,
-    layoutVersion: "per-page-draggable-web-evidence-v2",
+    layoutVersion: selectedPages
+      ? "selected-pages-draggable-web-evidence-v3"
+      : "per-page-draggable-web-evidence-v2",
+    ...(selectedPages ? { sourcePageCount: inspected.sourcePageCount } : {}),
     placements: inspected.plan,
     decidedAt: "2026-11-10T08:00:00.000Z",
   };
@@ -126,6 +142,11 @@ for (const scenario of [
       scan = jsQR(pixels.data, canvas.width, canvas.height, {
         inversionAttempts: "dontInvert",
       });
+    const placement = inspected.plan.find((item) => item.page === index + 1);
+    if (!placement) {
+      assert.equal(scan, null, `Unselected page ${index + 1} must have no QR`);
+      continue;
+    }
     assert.equal(scan?.data, url);
     // Use the four explicit outer corners, not finder-pattern location entries.
     const outer = [
@@ -138,14 +159,8 @@ for (const scenario of [
         x: outer.reduce((sum, item) => sum + item.x, 0) / 4,
         y: outer.reduce((sum, item) => sum + item.y, 0) / 4,
       };
-    assert.ok(
-      Math.abs(center.x - (inspected.plan[index].x * viewport.width + 67.5)) <
-        3,
-    );
-    assert.ok(
-      Math.abs(center.y - (inspected.plan[index].y * viewport.height + 67.5)) <
-        3,
-    );
+    assert.ok(Math.abs(center.x - (placement.x * viewport.width + 67.5)) < 3);
+    assert.ok(Math.abs(center.y - (placement.y * viewport.height + 67.5)) < 3);
     await writeFile(
       resolve(folder, `${scenario}-${index + 1}.png`),
       canvas.toBuffer("image/png"),
@@ -158,6 +173,7 @@ for (const scenario of [
     scenario,
     sourcePages: source.getPageCount(),
     resultPages: rendered.pageCount,
+    selectedPages: positions.map((item) => item.page),
     decodedPages: decoded,
     qrCentersMatchSelectedPositions: true,
     canvasUnchanged: true,

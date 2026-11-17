@@ -24,7 +24,7 @@ import {
 } from "@/lib/signing/policy";
 import { cn } from "@/lib/utils";
 import { isUuid, SigningClientError, signingFetch } from "./api";
-import { InternalPrototypeNotice } from "./states";
+import { SigningNotice } from "./states";
 
 type DraftReceipt = {
   documentId: string;
@@ -400,7 +400,7 @@ export function SigningDraftForm({
             </div>
             <div className="border-t border-border pt-5">
               <h2 className="mb-3 section-heading">
-                3. Izin penyimpanan development
+                3. Izin penyimpanan dokumen
               </h2>
               <label className="flex cursor-pointer items-start gap-3 text-xs leading-6 text-muted-foreground">
                 <input
@@ -412,6 +412,19 @@ export function SigningDraftForm({
                 />
                 <span>{SIGNING_UPLOAD_CONSENT_TEXT}</span>
               </label>
+              <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                Setelah dokumen disetujui, QR menampilkan status, waktu
+                persetujuan, nama penandatangan, dan judul dokumen tanpa login.
+                PDF, email, dan kode akun tetap privat.
+              </p>
+              <a
+                href="/policies/submission"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex min-h-11 items-center text-xs font-medium text-primary underline"
+              >
+                Baca kebijakan dokumen dan privasi
+              </a>
               {fields.consent && (
                 <p role="alert" className="mt-2 text-xs text-danger">
                   {fields.consent}
@@ -443,7 +456,7 @@ export function SigningDraftForm({
                   1. Simpan secara privat.
                 </span>
                 <br />
-                Unggah satu PDF sintetis tanpa password.
+                Unggah satu PDF tanpa password yang berhak Anda bagikan.
               </li>
               <li>
                 <span className="font-medium text-foreground">
@@ -461,7 +474,7 @@ export function SigningDraftForm({
               </li>
             </ol>
           </section>
-          <InternalPrototypeNotice />
+          <SigningNotice />
         </aside>
       </div>
     </div>

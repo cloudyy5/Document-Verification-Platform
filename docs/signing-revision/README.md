@@ -1,5 +1,11 @@
 # Rebaseline Document Verification Platform — persetujuan internal V1
 
+**Source 0.13.0, 18 November 2026 — layanan publik:** antarmuka memakai kebijakan operasional baru, tanpa label prototipe. Penyimpanan tanpa hapus otomatis, prosedur operator, ClamAV di Docker dan kontak KPILKOMITH sudah dipilih pengguna. [Panduan dan aktivasi migration 015](../public-service-release.md) menjadi acuan pengoperasian saat ini. Checkpoint sebelumnya di bawah adalah catatan historis.
+
+**Source 0.12.0, 17 November 2026 — S-19:** QR baru dan lama membuka status, waktu persetujuan, nama penandatangan serta judul dokumen tanpa login. PDF dan bukti lengkap tetap privat bagi peserta. [Kontrak, pengujian dan aktivasi migration 014](../public-qr-metadata.md) tersedia; QR/PDF lama tidak ditulis ulang. Pembatasan metadata privat pada checkpoint di bawah merupakan sejarah sebelum perubahan ini.
+
+**Source 0.11.0, 17 November 2026 — S-18:** penerima menentukan halaman yang diberi QR: minimal satu QR per dokumen dan maksimal satu per halaman pilihan. Seluruh halaman sumber tetap berada di PDF hasil. Validasi upload membedakan pengaturan tampilan awal PDF yang aman dari aksi aktif. [Laporan, pengujian dan aktivasi migration 013](../selected-qr-pages-and-pdf-validation.md) tersedia; aktivasi cloud belum dilakukan. Ketentuan semua halaman di checkpoint R3b di bawah merupakan format historis v2.
+
 **Source 0.10.0, 16 November 2026 — S-17:** menu Arsip Administratif dipertahankan dan dihubungkan dengan data signing saat ini, tanpa menghapus pengajuan lama. Verifikasi arsip memakai bukti privat dan pencocokan PDF lokal. [Laporan arsip](../administrative-archive-report.md) memuat perilaku ketiga menu, pengujian dan redeploy tanpa migration.
 
 **Pembaruan source 0.8.1, 11 November 2026 — S-15:** akun `platform_admin` hanya memakai Admin Workspace. Login email/password biasa otomatis memilih dashboard sesuai role; hint menuju halaman pengguna tidak mengembalikan admin ke User Workspace. Profil/preferensi akun sendiri tetap tersedia dengan shell admin. [Laporan implementasi dan uji](admin-workspace-report.md) membedakan pengujian lokal dari sesi cloud yang masih diperlukan; tidak ada migration baru atau perubahan role cloud otomatis.

@@ -1,6 +1,6 @@
 {
   "name": "document-verification-platform",
-  "version": "0.10.1",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "description": "Document Verification Platform — private documents and internal consent invitations",
@@ -41,7 +41,9 @@
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "format": "prettier --write src tests scripts supabase/templates *.ts *.mjs *.json *.yml README.md docs .github",
-    "format:check": "prettier --check src tests scripts supabase/templates *.ts *.mjs *.json *.yml README.md docs .github"
+    "format:check": "prettier --check src tests scripts supabase/templates *.ts *.mjs *.json *.yml README.md docs .github",
+    "test:ui:public-metadata": "playwright test --config playwright.public-metadata.config.ts",
+    "scanner:check": "node scripts/check-clamav.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "1.1.1",
@@ -53,7 +55,7 @@
     "geist": "1.9.0",
     "jsqr": "1.4.0",
     "lucide-react": "1.66.0",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "next-themes": "0.4.6",
     "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.5.438",
@@ -67,7 +69,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@napi-rs/canvas": "1.1.0",
-    "@next/eslint-plugin-next": "16.4.3",
+    "@next/eslint-plugin-next": "16.4.6",
     "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.2",

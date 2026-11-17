@@ -78,9 +78,9 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               Satu dokumen, satu penerima yang Anda pilih
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Simpan PDF sintetis secara privat, temukan penerima melalui kode
-              pengguna, lalu kirim permintaan dengan izin berbagi. Undangan
-              berlaku 7 hari.
+              Simpan PDF secara privat, temukan penerima melalui kode pengguna,
+              lalu kirim permintaan dengan izin berbagi. Undangan berlaku 7
+              hari.
             </p>
             <Link
               href="/signing/documents"
@@ -105,7 +105,8 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
         </div>
         <p className="mt-5 border-t border-border pt-4 text-xs leading-6 text-subtle">
           Penerima dapat menyetujui atau menolak permintaan. QR hasil membuka
-          bukti persetujuan privat di web.{" "}
+          metadata persetujuan di web tanpa login. PDF dan rincian lainnya tetap
+          privat.{" "}
           <Link href="/profile" className="font-medium text-primary">
             Lihat kode pengguna Anda
           </Link>

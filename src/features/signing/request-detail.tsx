@@ -7,7 +7,7 @@ import { formatTimestamp } from "@/features/workspace/format";
 import { CancelSigningRequest } from "./cancel-request";
 import { DocumentSnapshot } from "./document-snapshot";
 import { SigningStatusBadge } from "./request-status";
-import { FileAccessEnded, InternalPrototypeNotice } from "./states";
+import { FileAccessEnded, SigningNotice } from "./states";
 import type { SigningDocument, SigningRequest } from "./types";
 import { useRequestLifecycle } from "./use-request-lifecycle";
 import { SigningDecisionPanel } from "./decision-panel";
@@ -125,7 +125,7 @@ export function SigningRequestDetail({
             request={request}
             document={document}
           />
-          <InternalPrototypeNotice />
+          <SigningNotice />
         </div>
         <aside className="panel p-5">
           <h2 className="section-heading">Riwayat permintaan</h2>

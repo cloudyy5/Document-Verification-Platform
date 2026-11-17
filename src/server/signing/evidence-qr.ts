@@ -8,7 +8,7 @@ export function newSigningReceiptId(): string {
   return randomBytes(32).toString("base64url");
 }
 
-/** A local encoder: the QR contains only the login-protected receipt URL. */
+/** A local encoder: S-19 public four-field metadata URL; no PDF access token. */
 export function createSigningEvidenceQr(origin: string, receiptId: string) {
   const url = signingReceiptUrl(origin, receiptId);
   if (url.length > 512)

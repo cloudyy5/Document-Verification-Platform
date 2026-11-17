@@ -1,10 +1,14 @@
-/** An opaque receipt identifies evidence; it never grants access by itself. */
+/** Opaque QR lookup for S-19 public metadata; never grants access to a PDF. */
 export const SIGNING_RECEIPT_ID_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
 export function signingReceiptHref(id: string): string {
   if (!SIGNING_RECEIPT_ID_PATTERN.test(id))
     throw new Error("Invalid internal receipt identifier.");
   return `/receipts/${id}`;
+}
+
+export function signingPrivateReceiptHref(id: string): string {
+  return `${signingReceiptHref(id)}/details`;
 }
 
 /** Accept only the canonical application origin, without credentials or query. */

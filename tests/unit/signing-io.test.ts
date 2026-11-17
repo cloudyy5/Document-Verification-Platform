@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   privilegedFrom: vi.fn(),
   readForm: vi.fn(),
   validate: vi.fn(),
+  scan: vi.fn(),
   limit: vi.fn(),
   commit: vi.fn(),
   rpc: vi.fn(),
@@ -49,6 +50,9 @@ vi.mock("@/server/documents/multipart", () => ({
   readLimitedFormData: mocks.readForm,
 }));
 vi.mock("@/server/documents/pdf", () => ({ validatePdf: mocks.validate }));
+vi.mock("@/server/documents/malware", () => ({
+  assertPdfSafeForStorage: mocks.scan,
+}));
 
 import { ApiError } from "@/server/errors";
 import { derivedUploadId } from "@/server/documents/upload";
@@ -296,6 +300,23 @@ describe("R2 private draft upload I/O contracts with mocked provider", () => {
     },
   );
 
+  it.each([503, 422])(
+    "does not upload or commit a new draft when security scan rejects it (%s)",
+    async (status) => {
+      mocks.scan.mockRejectedValueOnce(
+        new ApiError(
+          status,
+          status === 503 ? "FILE_SCAN_UNAVAILABLE" : "UNSAFE_FILE",
+          "File ditolak.",
+        ),
+      );
+      await expect(uploadSigningDraft(uploadRequest())).rejects.toMatchObject({
+        status,
+      });
+      expect(mocks.upload).not.toHaveBeenCalled();
+      expect(mocks.commit).not.toHaveBeenCalled();
+    },
+  );
   it("creates only a private draft using session identity, new consent and separate deterministic IDs", async () => {
     const result = await uploadSigningDraft(
       uploadRequest({ "x-owner-id": outsider, "x-role": "platform_admin" }),

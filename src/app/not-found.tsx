@@ -8,7 +8,8 @@ export default function NotFoundPage() {
       <p className="font-mono text-xs text-subtle">404</p>
       <h1 className="text-2xl font-semibold">Halaman tidak tersedia</h1>
       <p className="text-muted-foreground">
-        Alamat ini belum tersedia dalam fondasi aplikasi.
+        Halaman yang Anda cari tidak ditemukan. Periksa kembali alamat
+        tautannya.
       </p>
       <Link
         href="/dashboard"

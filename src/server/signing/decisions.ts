@@ -12,10 +12,18 @@ import { serveSigningFile } from "./file";
 import { signingActor, signingR3Limit } from "./r3-context";
 import { mapSigningDatabaseError, signingUnavailable } from "./errors";
 import { renderSigningEvidence } from "./artifacts";
-import { inspectSigningPlacement } from "./layout";
+import {
+  inspectSigningPlacement,
+  inspectSelectedSigningPlacement,
+} from "./layout";
 import { getSigningOutcome } from "./evidence";
 import { acquireUploadSlot } from "@/server/documents/upload-slot";
-import { qrPlanSchema, type QrPlan } from "@/lib/signing/placement";
+import {
+  SELECTED_QR_PLACEMENT_VERSION,
+  qrPlanSchema,
+  selectedQrManifestSchema,
+  type QrPlan,
+} from "@/lib/signing/placement";
 
 const resultSchema = z.object({
   decisionId: z.uuid(),
@@ -74,15 +82,28 @@ export async function decideSigningRequest(
     .maybeSingle();
   if (existing.error) throw signingUnavailable();
   let placementPlan: QrPlan | undefined;
+  let sourcePageCount: number | undefined;
   if (existing.data && body.action === "approve") {
     const outcome = await getSigningOutcome(id);
-    if (outcome.decision?.action !== "approve" || !outcome.evidence?.placements)
+    if (
+      outcome.decision?.action !== "approve" ||
+      !outcome.evidence?.placements ||
+      outcome.evidence.policyVersion !== body.policyVersion ||
+      outcome.evidence.layoutVersion !== body.placementVersion
+    )
       throw new ApiError(
         409,
         "IDEMPOTENCY_CONFLICT",
         "Keputusan sudah final. Posisi QR tidak dapat diubah.",
       );
-    placementPlan = qrPlanSchema.parse(outcome.evidence.placements);
+    if (body.placementVersion === SELECTED_QR_PLACEMENT_VERSION) {
+      const manifest = selectedQrManifestSchema.parse({
+        sourcePageCount: outcome.evidence.sourcePageCount,
+        placements: outcome.evidence.placements,
+      });
+      placementPlan = manifest.placements;
+      sourcePageCount = manifest.sourcePageCount;
+    } else placementPlan = qrPlanSchema.parse(outcome.evidence.placements);
     if (
       placementPlan.length !== body.placements.length ||
       placementPlan.some(
@@ -119,11 +140,20 @@ export async function decideSigningRequest(
     if (body.action === "approve") {
       const release = acquireUploadSlot();
       try {
-        placementPlan = await inspectSigningPlacement(
-          bytes,
-          sourceHash,
-          body.placements,
-        );
+        if (body.placementVersion === SELECTED_QR_PLACEMENT_VERSION) {
+          const manifest = await inspectSelectedSigningPlacement(
+            bytes,
+            sourceHash,
+            body.placements,
+          );
+          placementPlan = manifest.placements;
+          sourcePageCount = manifest.sourcePageCount;
+        } else
+          placementPlan = await inspectSigningPlacement(
+            bytes,
+            sourceHash,
+            body.placements,
+          );
       } finally {
         release();
       }
@@ -143,6 +173,9 @@ export async function decideSigningRequest(
         body.policyVersion,
         key,
         ...(placementPlan ? [placementPlan] : []),
+        ...(sourcePageCount
+          ? [SELECTED_QR_PLACEMENT_VERSION, sourcePageCount]
+          : []),
       ]),
     )
     .digest("hex");
@@ -167,10 +200,16 @@ export async function decideSigningRequest(
   };
   const result =
     body.action === "approve"
-      ? await privileged.rpc("approve_signing_request_with_placement", {
-          ...common,
-          p_placement_plan: placementPlan!,
-        })
+      ? body.placementVersion === SELECTED_QR_PLACEMENT_VERSION
+        ? await privileged.rpc("approve_signing_request_with_selected_pages", {
+            ...common,
+            p_placement_plan: placementPlan!,
+            p_source_page_count: sourcePageCount!,
+          })
+        : await privileged.rpc("approve_signing_request_with_placement", {
+            ...common,
+            p_placement_plan: placementPlan!,
+          })
       : await privileged.rpc("decide_signing_request", {
           ...common,
           p_action: "reject",

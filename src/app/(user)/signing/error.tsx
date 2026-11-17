@@ -8,7 +8,7 @@ export default function SigningError({ reset }: { reset: () => void }) {
     <section className="panel">
       <ErrorState
         title="Persetujuan internal belum dapat dimuat"
-        description="Coba kembali dalam beberapa saat untuk memeriksa layanan development."
+        description="Data belum dapat dimuat. Silakan coba kembali dalam beberapa saat."
       >
         <Button onClick={reset}>Coba lagi</Button>
       </ErrorState>

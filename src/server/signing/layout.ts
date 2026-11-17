@@ -3,6 +3,8 @@ import { Worker } from "node:worker_threads";
 import { resolve } from "node:path";
 import {
   qrPlanSchema,
+  selectedQrManifestSchema,
+  type SelectedQrManifest,
   type QrPlan,
   type QrPosition,
 } from "@/lib/signing/placement";
@@ -12,11 +14,26 @@ export async function inspectSigningPlacement(
   sha256: string,
   positions: QrPosition[],
 ): Promise<QrPlan> {
+  return (await inspectPlacement(bytes, sha256, positions, false)).placements;
+}
+export async function inspectSelectedSigningPlacement(
+  bytes: Uint8Array,
+  sha256: string,
+  positions: QrPosition[],
+): Promise<SelectedQrManifest> {
+  return inspectPlacement(bytes, sha256, positions, true);
+}
+async function inspectPlacement(
+  bytes: Uint8Array,
+  sha256: string,
+  positions: QrPosition[],
+  selectedPages: boolean,
+): Promise<SelectedQrManifest> {
   return new Promise((done, reject) => {
     const worker = new Worker(
       resolve(process.cwd(), "src/server/signing/layout-worker.mjs"),
       {
-        workerData: { bytes, sha256, positions },
+        workerData: { bytes, sha256, positions, selectedPages },
         env: {},
         execArgv: [],
         stdout: true,
@@ -34,6 +51,7 @@ export async function inspectSigningPlacement(
     const finish = (message?: {
       ok: boolean;
       plan?: unknown;
+      sourcePageCount?: unknown;
       code?: string;
       page?: number;
     }) => {
@@ -41,8 +59,17 @@ export async function inspectSigningPlacement(
       settled = true;
       clearTimeout(timer);
       void worker.terminate();
-      const plan = qrPlanSchema.safeParse(message?.plan);
-      if (message?.ok && plan.success) done(plan.data);
+      const manifest = selectedQrManifestSchema.safeParse({
+        sourcePageCount: message?.sourcePageCount,
+        placements: message?.plan,
+      });
+      if (
+        message?.ok &&
+        manifest.success &&
+        (selectedPages ||
+          qrPlanSchema.safeParse(manifest.data.placements).success)
+      )
+        done(manifest.data);
       else
         reject(
           new ApiError(
@@ -50,7 +77,7 @@ export async function inspectSigningPlacement(
             "INVALID_QR_PLACEMENT",
             message?.code === "LAYOUT_ANNOTATION_OVERLAP"
               ? `Posisi QR pada halaman ${message.page ?? "yang dipilih"} bertumpuk dengan anotasi PDF. Pilih area kosong lain.`
-              : "Posisi QR belum sesuai dengan seluruh halaman PDF. Periksa kembali penempatan QR.",
+              : "Letakkan minimal satu QR pada halaman yang tersedia. Periksa kembali posisi QR di dalam halaman pilihan Anda.",
           ),
         );
     };

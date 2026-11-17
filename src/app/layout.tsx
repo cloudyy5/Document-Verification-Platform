@@ -7,7 +7,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Document Verification Platform", template: "%s | DVP" },
   description:
-    "Fondasi aplikasi pengajuan, pemeriksaan administratif, dan verifikasi integritas dokumen privat.",
+    "Platform pengelolaan dokumen privat, permintaan persetujuan, dan metadata QR.",
   robots: { index: false, follow: false },
 };
 

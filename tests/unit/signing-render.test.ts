@@ -33,6 +33,57 @@ function evidence(bytes: Uint8Array): SigningEvidence {
 }
 beforeEach(() => vi.clearAllMocks());
 describe("actual R3 PDF rendering worker (local synthetic data only)", () => {
+  it("retains five original pages when only page five receives a QR", async () => {
+    const pdf = await PDFDocument.create();
+    for (let i = 0; i < 5; i++) pdf.addPage([400, 600]);
+    const bytes = await pdf.save(),
+      initial = Buffer.from(bytes);
+    const rendered = await renderSigningPdf(bytes, {
+      ...evidence(bytes),
+      layoutVersion: "selected-pages-draggable-web-evidence-v3",
+      sourcePageCount: 5,
+      placements: [
+        {
+          page: 5,
+          x: 0.1,
+          y: 0.2,
+          widthPt: 400,
+          heightPt: 600,
+          rotation: 0,
+          userUnit: 1,
+        },
+      ],
+    });
+    expect(rendered.pageCount).toBe(5);
+    expect((await PDFDocument.load(rendered.bytes)).getPageCount()).toBe(5);
+    expect(Buffer.from(bytes).equals(initial)).toBe(true);
+  });
+  it.each([undefined, 1, 6])(
+    "refuses selected layouts with a source page count of %j instead of five",
+    async (sourcePageCount) => {
+      const pdf = await PDFDocument.create();
+      for (let i = 0; i < 5; i++) pdf.addPage([400, 600]);
+      const bytes = await pdf.save();
+      await expect(
+        renderSigningPdf(bytes, {
+          ...evidence(bytes),
+          layoutVersion: "selected-pages-draggable-web-evidence-v3",
+          sourcePageCount,
+          placements: [
+            {
+              page: 5,
+              x: 0.1,
+              y: 0.2,
+              widthPt: 400,
+              heightPt: 600,
+              rotation: 0,
+              userUnit: 1,
+            },
+          ],
+        }),
+      ).rejects.toMatchObject({ code: "RENDER_LIMIT" });
+    },
+  );
   it("adds a footer to all rotated/cropped original pages and one evidence page without changing input bytes", async () => {
     const pdf = await PDFDocument.create();
     for (const angle of [0, 90, 180, 270]) {

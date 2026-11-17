@@ -438,7 +438,7 @@ export function ArchiveVerification({
                 </div>
               )}
               <Button asChild variant="secondary">
-                <Link href={`/receipts/${result.evidence.id}`}>
+                <Link href={`/receipts/${result.evidence.id}/details`}>
                   Buka bukti privat
                 </Link>
               </Button>

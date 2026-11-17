@@ -11,6 +11,7 @@ const m = vi.hoisted(() => ({
   render: vi.fn(),
   configuration: vi.fn(),
   inspect: vi.fn(),
+  inspectSelected: vi.fn(),
   outcome: vi.fn(),
   replies: {} as Record<string, unknown>,
 }));
@@ -34,6 +35,7 @@ vi.mock("@/server/signing/config", () => ({
 vi.mock("@/server/signing/file", () => ({ serveSigningFile: m.source }));
 vi.mock("@/server/signing/layout", () => ({
   inspectSigningPlacement: m.inspect,
+  inspectSelectedSigningPlacement: m.inspectSelected,
 }));
 vi.mock("@/server/signing/evidence", () => ({ getSigningOutcome: m.outcome }));
 vi.mock("@/server/signing/artifacts", () => ({
@@ -60,7 +62,7 @@ const body = () => ({
   action: "approve",
   consent: true,
   confirmed: true,
-  policyVersion: "internal-action-development-2026-11-05",
+  policyVersion: "internal-action-2026-11-17",
   placementVersion: "per-page-draggable-web-evidence-v2",
   placements: [{ page: 1, x: 0.1, y: 0.2 }],
 });
@@ -142,6 +144,140 @@ beforeEach(() => {
   m.inspect.mockResolvedValue(plan);
 });
 describe("R3 decision orchestration (mocked Auth/Storage, real validation and binding)", () => {
+  const selectedVersion = "selected-pages-draggable-web-evidence-v3";
+  const selectedPlan = () => [{ ...plan[0]!, page: 5 }];
+  const selectedBody = () => ({
+    ...body(),
+    placementVersion: selectedVersion,
+    placements: [{ page: 5, x: 0.1, y: 0.2 }],
+  });
+  it("binds the selected QR plan and server-inspected page count to approval", async () => {
+    m.inspectSelected.mockResolvedValue({
+      sourcePageCount: 5,
+      placements: selectedPlan(),
+    });
+    const result = await decideSigningRequest(request, selectedBody(), key);
+    expect(result.receiptId).toBe(receipt);
+    expect(m.inspect).not.toHaveBeenCalled();
+    expect(m.inspectSelected).toHaveBeenCalledWith(
+      bytes,
+      hash,
+      selectedBody().placements,
+    );
+    const args = m.rpc.mock.calls.find(
+      ([name]) => name === "approve_signing_request_with_selected_pages",
+    )![1];
+    expect(args).toMatchObject({
+      p_source_page_count: 5,
+      p_placement_plan: selectedPlan(),
+    });
+    expect(args.p_confirmation_digest).toBe(
+      createHmac("sha256", "synthetic-r3-session-digest-test-secret")
+        .update(
+          JSON.stringify([
+            sid,
+            actor,
+            request,
+            version,
+            hash,
+            "approve",
+            null,
+            body().policyVersion,
+            key,
+            selectedPlan(),
+            selectedVersion,
+            5,
+          ]),
+        )
+        .digest("hex"),
+    );
+  });
+  it("retries a locked subset without downloading source again", async () => {
+    m.replies.signing_decisions = { id: decisionId, action: "approve" };
+    m.outcome.mockResolvedValue({
+      decision: { action: "approve" },
+      evidence: {
+        policyVersion: body().policyVersion,
+        layoutVersion: selectedVersion,
+        sourcePageCount: 5,
+        placements: selectedPlan(),
+      },
+    });
+    await decideSigningRequest(request, selectedBody(), key);
+    expect(m.source).not.toHaveBeenCalled();
+    expect(m.inspectSelected).not.toHaveBeenCalled();
+    expect(m.rpc).toHaveBeenCalledWith(
+      "approve_signing_request_with_selected_pages",
+      expect.objectContaining({
+        p_source_page_count: 5,
+        p_placement_plan: selectedPlan(),
+      }),
+    );
+  });
+  it.each(
+    [
+      [],
+      [
+        { page: 1, x: 0, y: 0 },
+        { page: 1, x: 0.2, y: 0.2 },
+      ],
+      [
+        { page: 5, x: 0, y: 0 },
+        { page: 2, x: 0, y: 0 },
+      ],
+    ].map((placements) => ({ placements })),
+  )(
+    "rejects zero QR, repeated or unordered selected pages before source access (%j)",
+    async ({ placements }) => {
+      await expect(
+        decideSigningRequest(request, { ...selectedBody(), placements }, key),
+      ).rejects.toThrow();
+      expect(m.source).not.toHaveBeenCalled();
+      expect(m.rpc).not.toHaveBeenCalled();
+    },
+  );
+  it("does not accept a forged source page count in the request", async () => {
+    await expect(
+      decideSigningRequest(
+        request,
+        { ...selectedBody(), sourcePageCount: 5 },
+        key,
+      ),
+    ).rejects.toThrow();
+    expect(m.source).not.toHaveBeenCalled();
+  });
+  it("rejects changing the layout version or QR quantity after approval", async () => {
+    m.replies.signing_decisions = { id: decisionId, action: "approve" };
+    m.outcome.mockResolvedValue({
+      decision: { action: "approve" },
+      evidence: {
+        policyVersion: body().policyVersion,
+        layoutVersion: selectedVersion,
+        sourcePageCount: 5,
+        placements: selectedPlan(),
+      },
+    });
+    await expect(
+      decideSigningRequest(request, body(), key),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      decideSigningRequest(
+        request,
+        {
+          ...selectedBody(),
+          placements: [
+            { page: 1, x: 0.1, y: 0.2 },
+            ...selectedBody().placements,
+          ],
+        },
+        key,
+      ),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(m.rpc).not.toHaveBeenCalledWith(
+      "approve_signing_request_with_selected_pages",
+      expect.anything(),
+    );
+  });
   it("uses verified actor/session and immutable source, then renders only after successful RPC commit", async () => {
     const result = await decideSigningRequest(request, body(), key);
     expect(result.artifactState).toBe("ready");
@@ -332,7 +468,11 @@ describe("R3 decision orchestration (mocked Auth/Storage, real validation and bi
     m.replies.signing_decisions = { id: decisionId, action: "approve" };
     m.outcome.mockResolvedValue({
       decision: { action: "approve" },
-      evidence: { placements: plan },
+      evidence: {
+        policyVersion: body().policyVersion,
+        placements: plan,
+        layoutVersion: body().placementVersion,
+      },
     });
     const result = await decideSigningRequest(request, body(), key);
     expect(result.receiptId).toBe(receipt);
@@ -347,7 +487,11 @@ describe("R3 decision orchestration (mocked Auth/Storage, real validation and bi
     m.replies.signing_decisions = { id: decisionId, action: "approve" };
     m.outcome.mockResolvedValue({
       decision: { action: "approve" },
-      evidence: { placements: plan },
+      evidence: {
+        policyVersion: body().policyVersion,
+        placements: plan,
+        layoutVersion: body().placementVersion,
+      },
     });
     await expect(
       decideSigningRequest(

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   privilegedFrom: vi.fn(),
   readForm: vi.fn(),
   validate: vi.fn(),
+  scan: vi.fn(),
   limit: vi.fn(),
   commit: vi.fn(),
   rpc: vi.fn(),
@@ -45,6 +46,9 @@ vi.mock("@/server/documents/multipart", () => ({
   readLimitedFormData: mocks.readForm,
 }));
 vi.mock("@/server/documents/pdf", () => ({ validatePdf: mocks.validate }));
+vi.mock("@/server/documents/malware", () => ({
+  assertPdfSafeForStorage: mocks.scan,
+}));
 
 import { ApiError } from "@/server/errors";
 import { derivedUploadId, uploadSubmission } from "@/server/documents/upload";
@@ -202,6 +206,16 @@ afterEach(() => {
 });
 
 describe("upload orchestration contracts (mocked provider, no stored documents)", () => {
+  it("does not store or commit a new submission when malware scanning is unavailable", async () => {
+    mocks.scan.mockRejectedValueOnce(
+      new ApiError(503, "FILE_SCAN_UNAVAILABLE", "Pemeriksaan belum tersedia."),
+    );
+    await expect(uploadSubmission(request())).rejects.toMatchObject({
+      code: "FILE_SCAN_UNAVAILABLE",
+    });
+    expect(mocks.upload).not.toHaveBeenCalled();
+    expect(mocks.commit).not.toHaveBeenCalled();
+  });
   it("requires verified authentication before creating any storage or database client", async () => {
     mocks.session.mockRejectedValue(
       new ApiError(401, "UNAUTHENTICATED", "Login required."),

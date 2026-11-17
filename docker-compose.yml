@@ -15,8 +15,15 @@ services:
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Isi NEXT_PUBLIC_SUPABASE_URL di file env}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?Isi NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY di file env}
       DOCUMENT_ENVIRONMENT: ${DOCUMENT_ENVIRONMENT:-production}
-      DOCUMENT_DEVELOPMENT_ORIGIN: ${DOCUMENT_DEVELOPMENT_ORIGIN:-}
       DOCUMENT_MAX_FILE_BYTES: ${DOCUMENT_MAX_FILE_BYTES:-10485760}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: "3310"
+      CLAMAV_TIMEOUT_MS: ${CLAMAV_TIMEOUT_MS:-30000}
+      SERVICE_OPERATOR_NAME: ${SERVICE_OPERATOR_NAME:-}
+      SERVICE_SUPPORT_EMAIL: ${SERVICE_SUPPORT_EMAIL:-}
+    depends_on:
+      clamav:
+        condition: service_healthy
     ports:
       - "${DOCKER_BIND_ADDRESS:-127.0.0.1}:${DOCKER_PORT:-3000}:3000"
     init: true
@@ -31,3 +38,22 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 6m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  clamav-signatures:

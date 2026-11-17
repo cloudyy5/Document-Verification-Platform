@@ -423,6 +423,119 @@ async function main() {
       "Preflight R3b tidak membuat posisi, persetujuan, akun atau PDF.",
     );
   }
+  if (process.argv.includes("--selected-qr")) {
+    const path =
+      "/rest/v1/signing_receipt_layouts?select=receipt_id,layout_version,source_page_count,placement_plan,plan_sha256&limit=0";
+    const [server, anonymous] = await Promise.all([
+      request(path, configuration.secretKey, { method: "HEAD" }),
+      request(path, configuration.publicKey, { method: "HEAD" }),
+    ]);
+    report(
+      "QR pilihan / jumlah halaman sumber tersedia",
+      server.ok,
+      server.status,
+    );
+    report(
+      "QR pilihan / manifest menolak anon",
+      [401, 403].includes(anonymous.status),
+      anonymous.status,
+    );
+    const body = {
+      p_actor_id: null,
+      p_request_id: null,
+      p_decision_id: null,
+      p_source_version_id: null,
+      p_source_sha256: null,
+      p_policy_version: null,
+      p_consent: null,
+      p_confirmed: null,
+      p_confirmation_digest: null,
+      p_placement_plan: null,
+      p_source_page_count: null,
+    };
+    const rpc = "approve_signing_request_with_selected_pages";
+    const [service, anon] = await Promise.all([
+      request(`/rest/v1/rpc/${rpc}`, configuration.secretKey, {
+        method: "POST",
+        body,
+      }),
+      request(`/rest/v1/rpc/${rpc}`, configuration.publicKey, {
+        method: "POST",
+        body,
+      }),
+    ]);
+    report(
+      "QR pilihan / actor null ditolak sebelum mutasi",
+      [401, 403].includes(service.status) &&
+        service.data?.code === "42501" &&
+        service.data?.message === "SIGNING_ACTOR_REQUIRED",
+      safeStatus(service),
+    );
+    report(
+      "QR pilihan / RPC tidak dapat dipanggil anon",
+      [401, 403].includes(anon.status) &&
+        anon.data?.code === "42501" &&
+        anon.data?.message === `permission denied for function ${rpc}`,
+      safeStatus(anon),
+    );
+    console.log(
+      "Preflight QR pilihan tidak membuat akun, dokumen, keputusan atau manifest.",
+    );
+  }
+  if (process.argv.includes("--public-metadata")) {
+    const rpc = "get_signing_public_metadata";
+    const [service, anon] = await Promise.all([
+      request(`/rest/v1/rpc/${rpc}`, configuration.secretKey, {
+        method: "POST",
+        body: { p_receipt_id: null },
+      }),
+      request(`/rest/v1/rpc/${rpc}`, configuration.publicKey, {
+        method: "POST",
+        body: { p_receipt_id: null },
+      }),
+    ]);
+    report(
+      "Metadata QR publik / proyeksi tersedia tanpa membaca record",
+      service.ok && service.data === null,
+      safeStatus(service),
+    );
+    report(
+      "Metadata QR publik / RPC langsung menolak anon",
+      [401, 403].includes(anon.status) && anon.data?.code === "42501",
+      safeStatus(anon),
+    );
+    const limit = await request(
+      "/rest/v1/rpc/consume_public_signing_metadata_limit",
+      configuration.secretKey,
+      { method: "POST", body: { p_key_digest: null, p_global_digest: null } },
+    );
+    report(
+      "Metadata QR publik / limiter menolak input null sebelum menulis",
+      limit.data?.code === "22023" &&
+        limit.data?.message === "INVALID_PUBLIC_METADATA_LIMIT",
+      safeStatus(limit),
+    );
+    console.log(
+      "Preflight metadata publik tidak membuat akun, dokumen, keputusan atau hit limiter.",
+    );
+  }
+  if (process.argv.includes("--service-policy")) {
+    const service = await request(
+      "/rest/v1/rpc/get_document_service_policy",
+      configuration.secretKey,
+      { method: "POST", body: {} },
+    );
+    report(
+      "Kebijakan layanan publik / migration 015 tersedia",
+      service.ok &&
+        service.data?.version === "public-service-2026-11-17" &&
+        service.data?.uploadPolicy === "internal-upload-2026-11-17" &&
+        service.data?.actionPolicy === "internal-action-2026-11-17" &&
+        service.data?.scanRequired === true &&
+        service.data?.retention === "operator-request-no-auto-delete",
+      safeStatus(service),
+    );
+  }
   if (process.argv.includes("--operations")) {
     const rpc = "get_operations_snapshot";
     const [service, anon] = await Promise.all([

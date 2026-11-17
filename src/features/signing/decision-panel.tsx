@@ -16,7 +16,7 @@ import {
   SIGNING_ACTION_CONSENT_TEXT,
   SIGNING_ACTION_POLICY_VERSION,
 } from "@/lib/signing/policy";
-import { signingReceiptHref } from "@/lib/signing/receipt-link";
+import { signingPrivateReceiptHref } from "@/lib/signing/receipt-link";
 import { signingDecisionSchema } from "@/lib/signing/decision-validation";
 import { signingFetch, SigningClientError } from "./api";
 import type { SigningRequest, SigningDocument } from "./types";
@@ -26,8 +26,12 @@ import type {
 } from "@/lib/signing/evidence-types";
 import { formatTimestamp } from "@/features/workspace/format";
 import QrPlacementEditor from "./qr-placement-editor";
-import { QR_PLACEMENT_VERSION, type QrPosition } from "@/lib/signing/placement";
+import {
+  SELECTED_QR_PLACEMENT_VERSION,
+  type QrPosition,
+} from "@/lib/signing/placement";
 import { signingFileHref } from "./api";
+import { SIGNING_PUBLIC_METADATA_NOTICE } from "@/lib/signing/public-metadata";
 
 export function SigningDecisionPanel({
   request,
@@ -84,7 +88,7 @@ export function SigningDecisionPanel({
       consent: action === "approve" ? consent : false,
       ...(action === "reject" ? { reason } : {}),
       ...(action === "approve"
-        ? { placementVersion: QR_PLACEMENT_VERSION, placements }
+        ? { placementVersion: SELECTED_QR_PLACEMENT_VERSION, placements }
         : {}),
     });
     if (!parsed.success) {
@@ -117,7 +121,7 @@ export function SigningDecisionPanel({
       setAttempt((value) => value + 1);
       router.refresh();
       if (action === "approve" && typeof result.receiptId === "string")
-        router.push(signingReceiptHref(result.receiptId));
+        router.push(signingPrivateReceiptHref(result.receiptId));
     } catch (problem) {
       setError(
         problem instanceof SigningClientError
@@ -163,7 +167,7 @@ export function SigningDecisionPanel({
         )}
         {outcome.evidence && (
           <Button asChild className="mt-5">
-            <Link href={signingReceiptHref(outcome.evidence.id)}>
+            <Link href={signingPrivateReceiptHref(outcome.evidence.id)}>
               Buka bukti & PDF hasil
             </Link>
           </Button>
@@ -195,6 +199,9 @@ export function SigningDecisionPanel({
           Periksa PDF sumber versi {document.versionNo} sebelum mengambil
           keputusan. Keputusan final akan tersimpan dalam riwayat privat.
         </p>
+        <p className="mt-3 text-xs leading-6 text-muted-foreground">
+          {SIGNING_PUBLIC_METADATA_NOTICE}
+        </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <Button
             disabled={!placements || pending}
@@ -223,7 +230,8 @@ export function SigningDecisionPanel({
         </div>
         {!placements && (
           <p className="mt-3 text-xs text-muted-foreground">
-            Atur posisi QR pada seluruh halaman untuk melanjutkan persetujuan.
+            Letakkan minimal satu QR pada halaman pilihan Anda untuk melanjutkan
+            persetujuan.
           </p>
         )}
         <Dialog
@@ -252,7 +260,7 @@ export function SigningDecisionPanel({
                   akan dicatat atas akun Anda dan tidak dapat diubah melalui
                   aplikasi.
                   {action === "approve" &&
-                    " Posisi QR di seluruh halaman akan dikunci. Bukti persetujuan ditampilkan di web tanpa halaman PDF tambahan."}
+                    ` Jumlah ${placements?.length ?? 0} QR dan posisinya pada halaman pilihan Anda akan dikunci. Semua halaman sumber tetap disertakan. Bukti persetujuan ditampilkan di web tanpa halaman PDF tambahan.`}
                 </DialogDescription>
               </DialogHeader>
               <fieldset disabled={pending} className="min-w-0 space-y-4">

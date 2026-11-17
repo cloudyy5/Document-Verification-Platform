@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { PDFDocument } from "pdf-lib";
 import { inspectPages, placementPlan } from "./pdf-layout.mjs";
 try {
-  const { bytes, sha256, positions } = workerData;
+  const { bytes, sha256, positions, selectedPages = false } = workerData;
   if (
     !(bytes instanceof Uint8Array) ||
     bytes.length > 10485760 ||
@@ -17,7 +17,8 @@ try {
   });
   parentPort.postMessage({
     ok: true,
-    plan: placementPlan(inspectPages(pdf), positions),
+    sourcePageCount: pdf.getPageCount(),
+    plan: placementPlan(inspectPages(pdf), positions, selectedPages),
   });
 } catch (error) {
   parentPort.postMessage({

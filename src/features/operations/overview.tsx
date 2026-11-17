@@ -102,7 +102,7 @@ export function OperationsOverview({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface px-5 py-4">
         <div className="min-w-0">
           <p className="text-xs font-medium text-foreground">
-            Lingkungan development
+            Aktivitas platform
           </p>
           <p className="mt-1 text-xs leading-5 text-subtle">
             {data
@@ -314,8 +314,8 @@ export function OperationsOverview({
             {data
               ? `Jendela aktivitas: ${formatTimestamp(data.periodStart)} sampai ${formatTimestamp(data.asOf)}. `
               : ""}
-            Data development mencakup akun dan dokumen uji. Angka ini tidak
-            mewakili penggunaan produksi.
+            Ringkasan mencakup seluruh aktivitas platform. Akun dan dokumen
+            pengujian yang masih tersimpan ikut dihitung.
           </p>
         </aside>
       </div>

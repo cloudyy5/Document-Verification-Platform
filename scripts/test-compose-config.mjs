@@ -33,7 +33,7 @@ const osEnvironment = Object.fromEntries(
     ].includes(name.toUpperCase()),
   ),
 );
-const origin = "https://prototype.example.invalid";
+const origin = "https://documents.example.invalid";
 const connection = {
   APP_URL: origin,
   AUTH_FLOW_SECRET: "synthetic-compose-config-flow-secret-123456",
@@ -67,56 +67,45 @@ function config(extraEnvironment, developmentOverride = false) {
       maxBuffer: 1024 * 1024,
     },
   );
-  return JSON.parse(output).services.web;
+  return JSON.parse(output);
 }
 
 function check(passed) {
   if (!passed) throw new Error("COMPOSE_CONTRACT_FAILED");
 }
 
-let stage = "prototype runtime environment";
+let stage = "production service configuration";
 try {
-  const prototype = config({
-    DOCUMENT_ENVIRONMENT: "development",
-    DOCUMENT_DEVELOPMENT_ORIGIN: origin,
-  });
-  check(prototype.environment.APP_URL === origin);
-  check(prototype.environment.DOCUMENT_ENVIRONMENT === "development");
-  check(prototype.environment.DOCUMENT_DEVELOPMENT_ORIGIN === origin);
-  check(prototype.build.target === "runner");
-  check(!prototype.volumes?.length);
-  for (const name of [
-    "SUPABASE_SECRET_KEY",
-    "AUTH_FLOW_SECRET",
-    "DOCUMENT_DEVELOPMENT_ORIGIN",
-  ])
-    check(!Object.hasOwn(prototype.build.args, name));
-  console.log("LULUS | prototype origin reaches runner at runtime only");
-
-  stage = "unconfigured document policy";
-  const defaults = config({});
-  check(defaults.environment.DOCUMENT_ENVIRONMENT === "production");
-  check(defaults.environment.DOCUMENT_DEVELOPMENT_ORIGIN === "");
-  check(Number(defaults.environment.DOCUMENT_MAX_FILE_BYTES) === 10485760);
-  console.log("LULUS | unset document policy stays closed to prototype use");
-
-  stage = "development Compose override";
-  const development = config({ DOCUMENT_DEVELOPMENT_ORIGIN: origin }, true);
-  check(development.build.target === "dev");
-  check(development.environment.DOCUMENT_ENVIRONMENT === "development");
-  check(development.environment.DOCUMENT_DEVELOPMENT_ORIGIN === origin);
-  console.log(
-    "LULUS | development override inherits the exact prototype origin",
+  const configValue = config({});
+  const web = configValue.services.web,
+    clamav = configValue.services.clamav;
+  check(web.environment.DOCUMENT_ENVIRONMENT === "production");
+  check(!Object.hasOwn(web.environment, "DOCUMENT_DEVELOPMENT_ORIGIN"));
+  check(
+    web.environment.CLAMAV_HOST === "clamav" &&
+      web.environment.CLAMAV_PORT === "3310",
   );
-
-  stage = "explicit production document policy";
-  const production = config({
-    DOCUMENT_ENVIRONMENT: "production",
-    DOCUMENT_DEVELOPMENT_ORIGIN: origin,
-  });
-  check(production.environment.DOCUMENT_ENVIRONMENT === "production");
-  check(production.environment.DOCUMENT_DEVELOPMENT_ORIGIN === origin);
-  console.log("LULUS | explicit production document policy is not rewritten");
+  check(Number(web.environment.DOCUMENT_MAX_FILE_BYTES) === 10485760);
+  check(web.depends_on.clamav.condition === "service_healthy");
+  check(clamav.image === "clamav/clamav:1.4" && !clamav.ports?.length);
+  check(clamav.healthcheck.test.includes("clamdcheck.sh"));
+  check(clamav.volumes?.some((v) => v.target === "/var/lib/clamav"));
+  check(web.build.target === "runner" && !web.volumes?.length);
+  for (const key of ["SUPABASE_SECRET_KEY", "AUTH_FLOW_SECRET", "CLAMAV_HOST"])
+    check(!Object.hasOwn(web.build.args, key));
+  console.log(
+    "LULUS | production runner requires private healthy ClamAV; runtime secrets stay outside build args",
+  );
+  stage = "development override";
+  const local = config({}, true).services.web;
+  check(
+    local.build.target === "dev" &&
+      local.environment.DOCUMENT_ENVIRONMENT === "development",
+  );
+  check(local.environment.CLAMAV_HOST === "clamav");
+  console.log(
+    "LULUS | local development override retains ClamAV configuration",
+  );
 } catch {
   // Never print child output, normalized configuration or environment values.
   console.error(

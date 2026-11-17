@@ -12,9 +12,13 @@ test("drag or touch, keyboard, independent pages and copy all keep positions ins
   await expect(add).toBeEnabled({ timeout: 30000 });
   await expect(page.getByTestId("placement-value")).toHaveText("null");
   await expect(
-    page.getByRole("img", { name: "QR tautan bukti persetujuan privat" }),
+    page.getByRole("img", { name: "QR metadata persetujuan tanpa login" }),
   ).toHaveCount(0);
   await add.click();
+  await expect(page.getByTestId("placement-value")).not.toHaveText("null");
+  expect(
+    JSON.parse((await page.getByTestId("placement-value").textContent())!),
+  ).toHaveLength(1);
   const marker = page.getByRole("button", { name: /Posisi QR halaman 1/ });
   const before = await marker.boundingBox(),
     sheet = await page.getByTestId("qr-page-sheet").boundingBox();
@@ -61,7 +65,14 @@ test("drag or touch, keyboard, independent pages and copy all keep positions ins
   await page
     .getByRole("button", { name: "Gunakan di semua halaman", exact: true })
     .click();
-  await expect(page.getByTestId("placement-value")).not.toHaveText("null");
+  await expect
+    .poll(
+      async () =>
+        JSON.parse(
+          (await page.getByTestId("placement-value").textContent()) ?? "null",
+        )?.length,
+    )
+    .toBe(4);
   const positions = JSON.parse(
     (await page.getByTestId("placement-value").textContent())!,
   ) as QrPosition[];
@@ -73,7 +84,7 @@ test("drag or touch, keyboard, independent pages and copy all keep positions ins
     ),
   ).toBe(true);
   await expect(
-    page.getByText("4 dari 4 halaman sudah diatur", { exact: true }),
+    page.getByText("4 QR dipilih pada dokumen 4 halaman", { exact: true }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -82,14 +93,71 @@ test("drag or touch, keyboard, independent pages and copy all keep positions ins
   ).toBe(true);
   await expect(page.getByText("Memuat halaman…", { exact: true })).toBeHidden();
   await expect(
-    page.getByRole("button", { name: "Hapus posisi", exact: true }),
+    page.getByRole("button", { name: "Hapus QR halaman ini", exact: true }),
   ).toBeEnabled();
   await page.screenshot({
     path: info.outputPath("qr-editor.png"),
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Hapus posisi", exact: true }).click();
-  await expect(page.getByTestId("placement-value")).toHaveText("null");
+  await page
+    .getByRole("button", { name: "Hapus QR halaman ini", exact: true })
+    .click();
+  await expect
+    .poll(
+      async () =>
+        JSON.parse(
+          (await page.getByTestId("placement-value").textContent()) ?? "null",
+        )?.length,
+    )
+    .toBe(3);
+  expect(
+    JSON.parse((await page.getByTestId("placement-value").textContent())!).map(
+      (item: QrPosition) => item.page,
+    ),
+  ).toEqual([1, 3, 4]);
+});
+
+test("one QR on the last page is enough; removing the last QR disables approval data", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const add = page.getByRole("button", {
+    name: "Letakkan penanda QR",
+    exact: true,
+  });
+  await expect(add).toBeEnabled({ timeout: 30000 });
+  await page.getByRole("spinbutton", { name: "Nomor halaman PDF" }).fill("4");
+  await expect(page.getByText("Memuat halaman…", { exact: true })).toBeHidden();
+  await expect(add).toBeEnabled();
+  await add.click();
+  await expect(
+    page.getByText("1 QR dipilih pada dokumen 4 halaman", { exact: true }),
+  ).toBeVisible();
+  const output = page.getByTestId("placement-value");
+  await expect(output).not.toHaveText("null");
+  expect(
+    JSON.parse((await output.textContent())!).map(
+      (item: QrPosition) => item.page,
+    ),
+  ).toEqual([4]);
+  await page
+    .getByRole("button", { name: "Halaman sebelumnya", exact: true })
+    .click();
+  await expect(add).toBeEnabled();
+  await expect(
+    page.getByText("Halaman 3 tanpa QR.", { exact: false }),
+  ).toBeVisible();
+  await expect(output).not.toHaveText("null");
+  await page
+    .getByRole("button", { name: "Halaman berikutnya", exact: true })
+    .click();
+  const remove = page.getByRole("button", {
+    name: "Hapus QR halaman ini",
+    exact: true,
+  });
+  await expect(remove).toBeEnabled();
+  await remove.click();
+  await expect(output).toHaveText("null");
 });
 test("mismatched source hash keeps all approval positions unavailable", async ({
   page,

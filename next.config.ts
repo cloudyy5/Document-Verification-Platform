@@ -87,6 +87,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/receipts/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+      {
         source: "/api/v1/documents/:documentId/file",
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },

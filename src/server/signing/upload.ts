@@ -13,6 +13,7 @@ import { derivedUploadId } from "@/server/documents/upload";
 import { acquireUploadSlot } from "@/server/documents/upload-slot";
 import { readLimitedFormData } from "@/server/documents/multipart";
 import { validatePdf } from "@/server/documents/pdf";
+import { assertPdfSafeForStorage } from "@/server/documents/malware";
 import { getSigningConfiguration } from "./config";
 import { mapSigningDatabaseError } from "./errors";
 
@@ -185,6 +186,7 @@ export async function uploadSigningDraft(request: Request) {
       );
     if (prior.data)
       return existingReceipt(prior.data, metadata, file, inspected.sha256);
+    await assertPdfSafeForStorage(inspected.bytes);
     const path = `${owner}/signing/${documentId}/${versionId}.pdf`;
     let storageError: { statusCode?: string | number } | null = null;
     try {

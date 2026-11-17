@@ -5,7 +5,7 @@ import {
 } from "@/lib/signing/policy";
 import { getSubmissionConfiguration } from "@/server/documents/config";
 
-/** Share the local/explicit remote development gate with separate consents. */
+/** Canonical-origin configuration with separate versioned service consents. */
 export function getSigningConfiguration() {
   const { maxBytes, environment } = getSubmissionConfiguration();
   return {
