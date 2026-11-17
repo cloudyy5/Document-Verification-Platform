@@ -1,6 +1,6 @@
 {
   "name": "document-verification-platform",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "private": true,
   "type": "module",
   "description": "Document Verification Platform — private documents and internal consent invitations",

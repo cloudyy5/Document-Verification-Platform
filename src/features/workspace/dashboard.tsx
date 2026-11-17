@@ -20,39 +20,39 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
     {
       label: "Total dokumen",
       count: data.counts.total,
-      href: "/documents/legacy",
+      href: "/documents/administrative",
     },
     {
       label: "Menunggu review",
       count: data.counts.pendingReview,
-      href: "/documents/legacy?status=pending_review",
+      href: "/documents/administrative?status=pending_review",
     },
     {
       label: "Disetujui",
       count: data.counts.approved,
-      href: "/documents/legacy?status=approved",
+      href: "/documents/administrative?status=approved",
     },
     {
       label: "Perlu revisi",
       count: data.counts.revisionRequested,
-      href: "/documents/legacy?status=revision_requested",
+      href: "/documents/administrative?status=revision_requested",
     },
     {
       label: "Ditolak",
       count: data.counts.rejected,
-      href: "/documents/legacy?status=rejected",
+      href: "/documents/administrative?status=rejected",
     },
     {
       label: "Dicabut",
       count: data.counts.revoked,
-      href: "/documents/legacy?status=revoked",
+      href: "/documents/administrative?status=revoked",
     },
   ];
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="User workspace"
-        title="Ringkasan pengajuan lama"
+        title="Ringkasan arsip pemeriksaan"
         description="Jumlah dan riwayat dari alur pemeriksaan administratif terdahulu."
         actions={
           <Button asChild className="w-full sm:w-auto">
@@ -147,7 +147,7 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               <FileText size={18} aria-hidden="true" /> Pengajuan arsip terbaru
             </h2>
             <Link
-              href="/documents/legacy"
+              href="/documents/administrative"
               className="inline-flex min-h-11 items-center gap-2 text-xs font-medium text-primary"
             >
               Lihat semua <ArrowRight size={15} aria-hidden="true" />
@@ -162,7 +162,7 @@ export function WorkspaceDashboard({ data }: { data: DashboardData }) {
               description="Pengajuan dari alur pemeriksaan administratif terdahulu akan ditampilkan di sini. Dokumen persetujuan internal tersedia pada ruang dokumen terpisah."
             >
               <Button asChild variant="secondary">
-                <Link href="/documents/legacy">Buka arsip dokumen</Link>
+                <Link href="/documents/administrative">Buka arsip dokumen</Link>
               </Button>
             </EmptyState>
           )}

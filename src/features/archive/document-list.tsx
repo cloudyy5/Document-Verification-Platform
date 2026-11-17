@@ -6,13 +6,17 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { SigningStatusBadge } from "@/features/signing/request-status";
 import { formatTimestamp } from "@/features/workspace/format";
-import { archiveStatusSchema, type ArchiveFilters } from "@/lib/archive/schema";
+import {
+  archiveHistoryStatusSchema,
+  archiveStatusSchema,
+  type ArchiveFilters,
+} from "@/lib/archive/schema";
 import type {
   SigningDocument,
   SigningPage,
   SigningRequest,
 } from "@/server/signing/types";
-import { ArchiveTabs, archiveListHref } from "./navigation";
+import { ArchiveTabs, ArchiveHistoryTabs, archiveListHref } from "./navigation";
 
 const labels = {
   pending: "Menunggu tanggapan",
@@ -26,11 +30,16 @@ export function ArchiveDocumentList({
   filters,
   owned,
   requests,
+  history = false,
 }: {
   filters: ArchiveFilters;
   owned?: SigningPage<SigningDocument>;
   requests?: SigningPage<SigningRequest>;
+  history?: boolean;
 }) {
+  const basePath = history ? "/documents/legacy" : "/documents";
+  const listHref = (value: Partial<ArchiveFilters>) =>
+    archiveListHref(value, basePath);
   const rows = owned
     ? owned.items.map((document) => ({
         id: document.id,
@@ -53,13 +62,30 @@ export function ArchiveDocumentList({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Arsip administratif"
-        title="Dokumen terdahulu"
-        description="Telusuri dokumen milik Anda, permintaan yang melibatkan akun Anda, dan pengajuan lama."
+        title={history ? "Pengajuan lama" : "Dokumen terdahulu"}
+        description={
+          history
+            ? "Riwayat permintaan persetujuan yang sudah selesai, ditolak, dibatalkan, atau kedaluwarsa."
+            : "Telusuri dokumen milik Anda, permintaan yang melibatkan akun Anda, dan pengajuan lama."
+        }
       />
-      <ArchiveTabs current={filters.scope} />
+      <ArchiveTabs current={history ? "legacy" : filters.scope} />
+      {history && (
+        <>
+          <ArchiveHistoryTabs
+            scope={filters.scope === "received" ? "received" : "sent"}
+            status={filters.status}
+          />
+          <p className="text-xs leading-6 text-subtle">
+            Status awal adalah Selesai. Pilih status lain untuk melihat
+            penolakan, pembatalan, atau kedaluwarsa. Permintaan aktif tetap
+            tersedia di Saya kirim atau Saya terima.
+          </p>
+        </>
+      )}
       <section className="panel">
         <form
-          action="/documents"
+          action={basePath}
           method="get"
           className="flex flex-col items-end gap-3 border-b border-border p-5 sm:flex-row"
         >
@@ -82,8 +108,11 @@ export function ArchiveDocumentList({
                 defaultValue={filters.status ?? ""}
                 className="block min-h-11 w-full rounded-md border border-border bg-surface px-3 text-sm"
               >
-                <option value="">Semua status</option>
-                {archiveStatusSchema.options.map((status) => (
+                {!history && <option value="">Semua status</option>}
+                {(history
+                  ? archiveHistoryStatusSchema.options
+                  : archiveStatusSchema.options
+                ).map((status) => (
                   <option key={status} value={status}>
                     {labels[status]}
                   </option>
@@ -96,15 +125,21 @@ export function ArchiveDocumentList({
             Terapkan
           </Button>
           <Button asChild variant="ghost">
-            <Link href={archiveListHref({ scope: filters.scope })}>
-              Bersihkan
-            </Link>
+            <Link href={listHref({ scope: filters.scope })}>Bersihkan</Link>
           </Button>
         </form>
         {!rows.length ? (
           <EmptyState
-            title="Tidak ada dokumen pada daftar ini"
-            description="Coba sumber atau filter lain. Pengajuan lama berada pada tab tersendiri; akses penerima tetap mengikuti status permintaan."
+            title={
+              history
+                ? "Belum ada riwayat untuk pilihan ini"
+                : "Tidak ada dokumen pada daftar ini"
+            }
+            description={
+              history
+                ? "Coba status atau arah riwayat lain. Arsip pemeriksaan dari alur terdahulu tersedia pada bagian terpisah."
+                : "Coba sumber atau filter lain. Pengajuan lama berada pada tab tersendiri; akses penerima tetap mengikuti status permintaan."
+            }
           />
         ) : (
           <ul className="divide-y divide-border">
@@ -146,16 +181,14 @@ export function ArchiveDocumentList({
           <div className="flex gap-2">
             {filters.cursor && (
               <Button asChild variant="secondary" size="sm">
-                <Link href={archiveListHref({ ...filters, cursor: undefined })}>
+                <Link href={listHref({ ...filters, cursor: undefined })}>
                   Awal daftar
                 </Link>
               </Button>
             )}
             {page?.hasMore && page.cursor && (
               <Button asChild variant="secondary" size="sm">
-                <Link
-                  href={archiveListHref({ ...filters, cursor: page.cursor })}
-                >
+                <Link href={listHref({ ...filters, cursor: page.cursor })}>
                   Berikutnya
                 </Link>
               </Button>

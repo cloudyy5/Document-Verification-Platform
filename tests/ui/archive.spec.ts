@@ -62,17 +62,95 @@ test("overview and archive documents remain distinct from legacy in both themes"
     ).toHaveAttribute("href", "/documents/legacy");
     await page.goto(`/?view=legacy&theme=${theme}`);
     await expect(
-      page.getByRole("heading", { name: "Pengajuan administratif lama" }),
+      page.getByRole("heading", { name: "Pengajuan lama", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("PDF SINTETIS ARSIP", { exact: true }),
     ).toBeVisible();
     await expect(page.locator("form")).toHaveAttribute(
       "action",
       "/documents/legacy",
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: info.outputPath(`previous-applications-${theme}.png`),
+      fullPage: true,
+    });
+    await page.goto(`/?view=administrative&empty=1&theme=${theme}`);
+    await expect(
+      page.getByRole("heading", { name: "Pengajuan administratif lama" }),
+    ).toBeVisible();
+    await expect(page.locator("form")).toHaveAttribute(
+      "action",
+      "/documents/administrative",
     );
   }
   await page.goto("/?view=overview&failed=1");
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(page.getByText("Belum tersedia", { exact: true })).toHaveCount(
     8,
+  );
+});
+test("completed signing history is available even with no administrative submissions", async ({
+  page,
+}) => {
+  await page.goto("/?view=legacy");
+  await expect(
+    page.getByRole("heading", { name: "Pengajuan lama", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("combobox")).toHaveValue("completed");
+  await expect(page.getByRole("combobox").locator("option")).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: "Lihat riwayat" }),
+  ).toHaveAttribute("href", /^\/requests\//);
+  await expect(
+    page.getByRole("link", {
+      name: "Arsip pemeriksaan terdahulu",
+      exact: true,
+    }),
+  ).toHaveAttribute("href", "/documents/administrative");
+});
+test("received rejected history keeps private metadata hidden and preserves pagination context", async ({
+  page,
+}) => {
+  await page.goto("/?view=legacy&scope=received&status=rejected");
+  await expect(
+    page.getByText("Informasi dokumen tidak tersedia", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("PDF SINTETIS ARSIP", { exact: true }),
+  ).toHaveCount(0);
+  const href = await page
+    .getByRole("link", { name: "Berikutnya", exact: true })
+    .getAttribute("href");
+  const target = new URL(href!, origin);
+  expect(target.pathname).toBe("/documents/legacy");
+  expect(target.searchParams.get("scope")).toBe("received");
+  expect(target.searchParams.get("status")).toBe("rejected");
+  expect(target.searchParams.get("cursor")).toBe("syntheticcursor");
+  await expect(
+    page.getByRole("link", { name: "Pernah saya kirim", exact: true }),
+  ).toHaveAttribute("href", "/documents/legacy?scope=sent&status=rejected");
+});
+test("administrative records keep their own status and original detail route", async ({
+  page,
+}) => {
+  await page.goto("/?view=administrative");
+  await expect(
+    page
+      .getByRole("link", {
+        name: "PENGAJUAN ADMINISTRATIF SINTETIS",
+        exact: true,
+      })
+      .first(),
+  ).toHaveAttribute("href", "/documents/98000000-0000-4000-8000-000000000003");
+  await expect(page.locator("form")).toHaveAttribute(
+    "action",
+    "/documents/administrative",
   );
 });
 test("sent and received archive filters retain scope and status when paging", async ({

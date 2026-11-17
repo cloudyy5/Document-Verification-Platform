@@ -4,6 +4,7 @@ import { ArchiveVerification } from "../../../src/features/archive/verification"
 import { ArchiveOverview } from "../../../src/features/archive/overview";
 import { ArchiveDocumentList } from "../../../src/features/archive/document-list";
 import { DocumentsWorkspace } from "../../../src/features/workspace/document-list";
+import { archiveHistoryFiltersSchema } from "../../../src/lib/archive/schema";
 import type {
   SigningDocument,
   SigningRequest,
@@ -48,6 +49,20 @@ const fixtureDocument: SigningDocument = {
   request,
 };
 const page = { items: [fixtureDocument], cursor: null, hasMore: false };
+const history = archiveHistoryFiltersSchema.parse({
+  scope: query.get("scope") ?? undefined,
+  status: query.get("status") ?? undefined,
+});
+const historyRequest: SigningRequest = {
+  ...request,
+  status: history.status,
+  isOwner: history.scope === "sent",
+  documentTitle:
+    history.scope === "received" && history.status !== "completed"
+      ? null
+      : request.documentTitle,
+  canReadFile: history.scope === "sent" || history.status === "completed",
+};
 const summary = {
   asOf: request.sentAt,
   metrics: {
@@ -87,11 +102,39 @@ createRoot(window.document.getElementById("root")!).render(
           }}
         />
       ) : view === "legacy" ? (
+        <ArchiveDocumentList
+          history
+          filters={history}
+          requests={{
+            items: [historyRequest],
+            cursor: "syntheticcursor",
+            hasMore: true,
+          }}
+        />
+      ) : view === "administrative" ? (
         <DocumentsWorkspace
-          basePath="/documents/legacy"
+          basePath="/documents/administrative"
           categories={[]}
           filters={{ limit: 20 }}
-          result={{ items: [], limit: 20, nextCursor: null }}
+          result={{
+            items: query.has("empty")
+              ? []
+              : [
+                  {
+                    id: "98000000-0000-4000-8000-000000000003",
+                    submissionId: "98000000-0000-4000-8000-000000000004",
+                    title: "PENGAJUAN ADMINISTRATIF SINTETIS",
+                    category: { id, name: "Lainnya", slug: "lainnya" },
+                    status: "pending_review",
+                    currentVersionNo: 1,
+                    submittedAt: request.sentAt,
+                    registeredAt: null,
+                    updatedAt: request.sentAt,
+                  },
+                ],
+            limit: 20,
+            nextCursor: null,
+          }}
         />
       ) : (
         <ArchiveVerification canonicalOrigin={location.origin} />

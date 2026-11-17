@@ -104,8 +104,9 @@ test.describe("workspace synthetic-account smoke (explicit opt-in)", () => {
     for (const [pathname, heading, screenshot] of [
       ["/dashboard", "Ringkasan arsip", "workspace-dashboard-light.png"],
       ["/documents", "Dokumen terdahulu", "workspace-documents-light.png"],
+      ["/documents/legacy", "Pengajuan lama", "workspace-history-light.png"],
       [
-        "/documents/legacy",
+        "/documents/administrative",
         "Pengajuan administratif lama",
         "workspace-legacy-light.png",
       ],

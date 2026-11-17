@@ -11,7 +11,9 @@ export default function DocumentNotFound() {
         Dokumen ini tidak tersedia untuk akun Anda.
       </p>
       <Button asChild variant="secondary">
-        <Link href="/documents/legacy">Kembali ke pengajuan lama</Link>
+        <Link href="/documents/administrative">
+          Kembali ke arsip pemeriksaan
+        </Link>
       </Button>
     </section>
   );

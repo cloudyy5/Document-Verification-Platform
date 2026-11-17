@@ -19,6 +19,7 @@ test("halaman privat mengharuskan login dan mempertahankan tujuan internal", asy
     "/dashboard",
     "/documents",
     "/documents/legacy",
+    "/documents/administrative",
     "/submit",
     "/verify",
     "/profile",

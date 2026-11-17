@@ -91,6 +91,8 @@ Ukuran detail atau jumlah tabel mengikuti tugas layar. Rincian kartu/dashboard t
 
 ## 4. Route R2 dan target berikutnya
 
+**Perbaikan 17 November 2026/source 0.10.1:** Pengajuan lama berada pada `/documents/legacy` untuk riwayat persetujuan yang sudah berakhir. Pengajuan pemeriksaan dari alur terdahulu tersedia lewat subnavigasi ke `/documents/administrative`; detail `/documents/:id` tetap memakai ID/data lama. [Laporan perbaikan](../previous-applications-fix.md) menggantikan pemetaan route daftar legacy pada checkpoint 0.10.0 di bawah.
+
 **Pembaruan S-17/source 0.10.0 (16 November 2026):** ketiga menu Arsip Administratif tetap tersedia. `/dashboard` merangkum dokumen/permintaan signing akun sendiri; `/documents` mempunyai tab Dokumen saya/Saya kirim/Saya terima/Pengajuan lama. Pengajuan pemeriksaan lama berpindah daftar ke `/documents/legacy` dengan detail `/documents/:id` tetap utuh. `/verify` kini membaca QR kamera/gambar atau ID/tautan bukti, serta membandingkan hash PDF lokal dengan bukti privat `/receipts/:receiptId` yang sudah tersedia. Admin tidak mendapat akses dokumen baru. [Laporan arsip](../administrative-archive-report.md) menjadi acuan perilaku terbaru; tabel kandidat/checkpoint R2 di bawah dipertahankan sebagai sejarah rancangan.
 
 Route draft/undangan berikut tersedia pada source R2. Route bukti/admin tambahan masih target dan tidak memperoleh permission hanya dari sitemap. Aktivasi cloud R2 mengikuti migration 009; `/documents` serta `/submit` tetap jalur administratif legacy.

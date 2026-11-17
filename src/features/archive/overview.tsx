@@ -158,19 +158,19 @@ export function ArchiveOverview({
         <div>
           <h2 className="section-heading flex items-center gap-2">
             <Files className="size-4" aria-hidden="true" />
-            Pengajuan administratif lama
+            Arsip pemeriksaan terdahulu
           </h2>
           <p className="mt-2 text-xs leading-6 text-muted-foreground">
             {legacyCount === null
-              ? "Jumlah pengajuan lama belum tersedia."
+              ? "Jumlah arsip pemeriksaan belum tersedia."
               : `${legacyCount} dokumen dari alur pemeriksaan terdahulu.`}{" "}
             Riwayat lama tetap dipertahankan.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
-            <Link href="/documents/legacy">
-              Buka pengajuan lama <ArrowRight aria-hidden="true" />
+            <Link href="/documents/administrative">
+              Lihat arsip pemeriksaan <ArrowRight aria-hidden="true" />
             </Link>
           </Button>
           <Button asChild variant="secondary">

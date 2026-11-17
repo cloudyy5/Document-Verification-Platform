@@ -201,7 +201,7 @@ export function DocumentsWorkspace({
       <PageHeader
         eyebrow="User workspace"
         title={
-          basePath === "/documents/legacy"
+          basePath === "/documents/administrative"
             ? "Pengajuan administratif lama"
             : "Dokumen saya"
         }

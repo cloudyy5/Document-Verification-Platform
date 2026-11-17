@@ -1,5 +1,7 @@
 # Document Verification Platform
 
+**Source 0.10.1 — perbaikan Pengajuan lama yang kosong.** Tab ini kini menampilkan riwayat persetujuan Selesai, Ditolak, Dibatalkan, atau Kedaluwarsa, dengan pilihan pernah dikirim/diterima. Status awal Selesai; akun yang belum pernah mengirim mendapat riwayat penerima bila tersedia. Pengajuan pemeriksaan dari alur terdahulu tetap ada pada `/documents/administrative`. [Laporan perbaikan](docs/previous-applications-fix.md) menjelaskan sumber data, pengujian dan redeploy tanpa migration.
+
 **Source 0.10.0 — Arsip Administratif tetap tersedia dan berfungsi.** Ringkasan menampilkan data persetujuan akun sendiri; Dokumen terdahulu menyediakan tab dokumen sendiri, terkirim, diterima dan pengajuan lama. Verifikasi arsip membaca QR/ID bukti privat serta mencocokkan PDF secara lokal. Data lama, akses peserta dan batas admin dipertahankan. [Laporan dan cara memakai arsip](docs/administrative-archive-report.md) memuat pengujian serta langkah redeploy. Tidak perlu migration atau environment baru.
 
 **Source 0.9.0 — notifikasi akun di dalam aplikasi.** Lonceng header kini membaca notifikasi tersimpan dari Supabase, menampilkan jumlah belum dibaca, membuka permintaan terkait, serta menyimpan status dibaca. Panel mendukung mobile, tema terang/gelap, pagination, dan error tanpa mengganti hasil gagal menjadi nol. [Laporan implementasi](docs/in-app-notifications-report.md) menjelaskan cakupan peristiwa, polling dan pemeriksaan. Tidak ada migration, environment baru, email atau izin membaca dokumen tambahan.
@@ -61,7 +63,8 @@ Konfigurasi pengajuan ditujukan untuk development dengan Supabase Free. Default 
 | `/signing/documents/[documentId]`                                   | Versi sumber, lookup satu kode penerima, consent berbagi dan pengiriman undangan                         |
 | `/requests/incoming`, `/requests/outgoing`, `/requests/[requestId]` | Kotak masuk/keluar, status aktual, preview jika grant masih berlaku dan pembatalan oleh pemilik          |
 | `/documents`                                                        | Arsip dokumen sendiri serta permintaan terkirim/masuk, pencarian/filter status dan cursor pagination     |
-| `/documents/legacy`                                                 | Pengajuan pemeriksaan lama milik akun, dengan filter judul/kategori/status/tanggal                       |
+| `/documents/legacy`                                                 | Pengajuan lama: riwayat persetujuan selesai/ditolak/dibatalkan/kedaluwarsa, dikirim atau diterima        |
+| `/documents/administrative`                                         | Arsip pemeriksaan dari alur terdahulu milik akun, dengan filter judul/kategori/status/tanggal            |
 | `/documents/[documentId]`                                           | Metadata, status, PDF privat, snapshot versi, catatan dan checklist review                               |
 | `/submit`                                                           | Pengajuan PDF dan metadata; wajib login, email terverifikasi, consent aktif, dan konfigurasi development |
 | `/documents/[documentId]/resubmit`                                  | Versi baru untuk dokumen sendiri yang berstatus `revision_requested`                                     |
@@ -140,6 +143,8 @@ Mode `--signing` menambah HEAD empat tabel R2 dengan nol baris, penolakan anon, 
 Hasil preflight terakhir pada 9 November 2026: **26 pemeriksaan lulus** setelah satu kegagalan jaringan sementara dan retry. Empat tabel signing merespons service HEAD 200 dan anon 401; empat RPC menolak actor null dengan 403/42501, limiter menolak input invalid 400/22023 dan kelima RPC menolak EXECUTE anon 401/42501 dengan pesan permission denied. Auth settings, akses tabel role dan pemeriksaan recovery merespons 200; counts anonim ditolak dengan `401 / 42501`; input limiter invalid ditolak dengan `400 / 22023`. Semua sesuai kontrak. Status `LULUS` ini membuktikan koneksi dan batas pemeriksaan tersebut. Smoke browser/profil terpisah sudah lulus. Pengajuan dan preview file cloud juga lulus pada retest R1; email delivery tetap belum dibuktikan. Detail ada pada [setup User Workspace](docs/user-workspace-setup.md).
 
 ## Pemeriksaan
+
+[Alur pengujian manual/UAT](docs/alur-pengujian-manual.md) menyediakan diagram, langkah per akun, 52 skenario dan [template hasil CSV](docs/template-hasil-pengujian.csv). Dokumen tersebut adalah rencana yang diisi saat pelaksanaan, bukan hasil pengujian cloud baru.
 
 ```powershell
 npm run lint

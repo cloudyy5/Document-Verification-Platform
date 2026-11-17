@@ -1,5 +1,7 @@
 # Arsip administratif yang dapat digunakan
 
+**Pembaruan 17 November 2026/source 0.10.1:** tab Pengajuan lama (`/documents/legacy`) kini membaca riwayat persetujuan yang telah berakhir; pengajuan pemeriksaan lama tersedia di `/documents/administrative`. [Laporan perbaikan](previous-applications-fix.md) menjadi acuan perilaku terbaru. Isi bertanggal 16 November di bawah dipertahankan sebagai checkpoint implementasi awal.
+
 Source **0.10.0**, **16 November 2026**, Asia/Makassar. Pengguna meminta ketiga menu Arsip Administratif tetap diadakan dan dapat dipakai. Sebelumnya Ringkasan/Dokumen terdahulu hanya membaca tabel pengajuan pemeriksaan lama, sehingga dokumen persetujuan baru tidak muncul; Verifikasi arsip masih berupa antarmuka yang dinonaktifkan.
 
 ## Perilaku ketiga menu

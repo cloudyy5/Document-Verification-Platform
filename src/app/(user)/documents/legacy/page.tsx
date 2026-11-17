@@ -1,95 +1,62 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/ui/error-state";
-import { PageHeader } from "@/components/ui/page-header";
-import { DocumentsWorkspace } from "@/features/workspace/document-list";
-import type {
-  Category,
-  DocumentFilters,
-  DocumentListResult,
-} from "@/features/workspace/types";
 import { requireUserWorkspace } from "@/lib/auth/session";
-import { ArchiveTabs } from "@/features/archive/navigation";
-import {
-  getWorkspaceCategories,
-  getWorkspaceDocuments,
-  WorkspaceValidationError,
-} from "@/server/workspace/queries";
+import { archiveHistoryFiltersSchema } from "@/lib/archive/schema";
+import { getSigningRequests } from "@/server/signing/queries";
+import { ApiError } from "@/server/errors";
+import { ArchiveDocumentList } from "@/features/archive/document-list";
+import { SigningUnavailable } from "@/features/signing/states";
+import { ErrorState } from "@/components/ui/error-state";
+import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = { title: "Pengajuan administratif lama" };
+export const metadata: Metadata = { title: "Pengajuan lama" };
 
-export default async function DocumentsPage({
+function InvalidHistoryFilters() {
+  return (
+    <section className="panel">
+      <ErrorState
+        title="Filter riwayat tidak valid"
+        description="Pilih status Selesai, Ditolak, Dibatalkan, atau Kedaluwarsa pada riwayat yang Anda kirim atau terima."
+      >
+        <Button asChild variant="secondary">
+          <Link href="/documents/legacy">Bersihkan filter</Link>
+        </Button>
+        <Button asChild variant="secondary">
+          <Link href="/documents/administrative">
+            Arsip pemeriksaan terdahulu
+          </Link>
+        </Button>
+      </ErrorState>
+    </section>
+  );
+}
+
+export default async function PreviousApplicationsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await requireUserWorkspace("/documents/legacy");
   const input = await searchParams;
-  let result: DocumentListResult | null = null;
-  let categories: Category[] = [];
+  const parsed = archiveHistoryFiltersSchema.safeParse(input);
+  if (!parsed.success) return <InvalidHistoryFilters />;
+  let filters = parsed.data;
+  let requests: Awaited<ReturnType<typeof getSigningRequests>>;
   try {
-    [result, categories] = await Promise.all([
-      getWorkspaceDocuments(input),
-      getWorkspaceCategories(),
-    ]);
+    requests = await getSigningRequests(filters);
+    if (
+      input.scope === undefined &&
+      input.cursor === undefined &&
+      !requests.items.length &&
+      !requests.hasMore
+    ) {
+      filters = { ...filters, scope: "received" };
+      requests = await getSigningRequests(filters);
+    }
   } catch (error) {
-    if (!(error instanceof WorkspaceValidationError)) throw error;
+    if (!(error instanceof ApiError)) throw error;
+    if (error.status === 422) return <InvalidHistoryFilters />;
+    return <SigningUnavailable title="Pengajuan lama" />;
   }
-  if (!result) {
-    return (
-      <div>
-        <PageHeader
-          title="Pengajuan administratif lama"
-          description="Lihat pengajuan dan status pemeriksaan dokumen milik Anda."
-        />
-        <section className="panel">
-          <ErrorState
-            title="Filter dokumen tidak valid"
-            description="Periksa kata pencarian, status, rentang tanggal, atau kembali ke awal daftar."
-          >
-            <Button asChild variant="secondary">
-              <Link href="/documents/legacy">Bersihkan filter</Link>
-            </Button>
-          </ErrorState>
-        </section>
-      </div>
-    );
-  }
-  const filters: DocumentFilters = {
-    ...(typeof input.q === "string" && input.q.trim()
-      ? { q: input.q.trim() }
-      : {}),
-    ...(typeof input.status === "string" && input.status
-      ? { status: input.status as DocumentFilters["status"] }
-      : {}),
-    ...(typeof input.categoryId === "string" && input.categoryId
-      ? { categoryId: input.categoryId }
-      : {}),
-    ...(typeof input.from === "string" && input.from
-      ? { from: input.from }
-      : {}),
-    ...(typeof input.to === "string" && input.to ? { to: input.to } : {}),
-    ...(typeof input.cursor === "string" && input.cursor
-      ? { cursor: input.cursor }
-      : {}),
-    limit: result.limit,
-  };
-  return (
-    <div className="space-y-6">
-      <ArchiveTabs current="legacy" />
-      <Link
-        href="/dashboard?source=legacy"
-        className="inline-flex min-h-11 items-center text-sm font-medium text-primary"
-      >
-        Ringkasan pengajuan lama
-      </Link>
-      <DocumentsWorkspace
-        basePath="/documents/legacy"
-        result={result}
-        categories={categories}
-        filters={filters}
-      />
-    </div>
-  );
+  return <ArchiveDocumentList history filters={filters} requests={requests} />;
 }

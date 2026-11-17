@@ -27,6 +27,22 @@ export const archiveFiltersSchema = z
   })
   .refine((value) => (value.scope === "owned" ? !value.status : !value.q));
 export type ArchiveFilters = z.infer<typeof archiveFiltersSchema>;
+export const archiveHistoryStatusSchema = z.enum([
+  "completed",
+  "rejected",
+  "cancelled",
+  "expired",
+]);
+export const archiveHistoryFiltersSchema = z.strictObject({
+  scope: z.enum(["sent", "received"]).default("sent"),
+  status: archiveHistoryStatusSchema.default("completed"),
+  cursor: z
+    .string()
+    .max(512)
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .optional(),
+});
+export type ArchiveHistoryFilters = z.infer<typeof archiveHistoryFiltersSchema>;
 const count = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 export const archiveMetricsSchema = z.object({
   ownedDocuments: count,
